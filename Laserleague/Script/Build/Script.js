@@ -37,35 +37,50 @@ var Script;
     var ƒ = FudgeCore;
     ƒ.Debug.info("Main Program Template running!");
     let viewport;
+    let laserRotationSpeed = 50;
+    let agentMoveSpeed = 0;
+    let agentMaxMoveSpeed = 5;
+    let agentAccelerationSpeed = 0.1;
     document.addEventListener("interactiveViewportStarted", start);
     let transform;
     let agentMove;
     function start(_event) {
-        alert('Move around with your arrow keys on your keyboard');
         viewport = _event.detail;
-        ƒ.Loop.addEventListener("loopFrame" /* LOOP_FRAME */, update);
         let graph = viewport.getBranch();
         let laser = graph.getChildrenByName("Lasers")[0].getChildrenByName("Laser_one")[0];
         let agent = graph.getChildrenByName("Agent")[0].getChildrenByName("Agent_one")[0];
         transform = laser.getComponent(ƒ.ComponentTransform).mtxLocal;
         agentMove = agent.getComponent(ƒ.ComponentTransform).mtxLocal;
-        ƒ.Loop.start();
+        viewport.camera.mtxPivot.translateZ(-45);
+        ƒ.Loop.addEventListener("loopFrame" /* LOOP_FRAME */, update);
+        ƒ.Loop.start(ƒ.LOOP_MODE.TIME_REAL, 60);
     }
     function update(_event) {
-        transform.rotateZ(5);
+        transform.rotateZ(laserRotationSpeed * ƒ.Loop.timeFrameReal / 1000);
         viewport.draw();
         ƒ.AudioManager.default.update();
-        if (ƒ.Keyboard.isPressedOne([ƒ.KEYBOARD_CODE.ARROW_UP])) {
-            agentMove.translateY(0.1);
+        //Agent speed erhöhen bei Pfeiltaste nach oben oder W 
+        if (ƒ.Keyboard.isPressedOne([ƒ.KEYBOARD_CODE.ARROW_UP, ƒ.KEYBOARD_CODE.W])) {
+            if (agentMoveSpeed < agentMaxMoveSpeed) {
+                agentMoveSpeed += agentAccelerationSpeed;
+            }
+            agentMove.translateY(agentMoveSpeed * ƒ.Loop.timeFrameReal / 1000);
         }
-        if (ƒ.Keyboard.isPressedOne([ƒ.KEYBOARD_CODE.ARROW_RIGHT])) {
+        //Agent speed reduzieren bei Pfeiltaste nach oben oder W 
+        if (ƒ.Keyboard.isPressedOne([ƒ.KEYBOARD_CODE.ARROW_DOWN, ƒ.KEYBOARD_CODE.S])) {
+            if (agentMoveSpeed < agentMaxMoveSpeed) {
+                agentMoveSpeed += agentAccelerationSpeed;
+            }
+            agentMove.translateY(-agentMoveSpeed * ƒ.Loop.timeFrameReal / 1000);
+        }
+        if (!ƒ.Keyboard.isPressedOne([ƒ.KEYBOARD_CODE.ARROW_UP, ƒ.KEYBOARD_CODE.W, ƒ.KEYBOARD_CODE.ARROW_DOWN, ƒ.KEYBOARD_CODE.S])) {
+            agentMoveSpeed = 0;
+        }
+        if (ƒ.Keyboard.isPressedOne([ƒ.KEYBOARD_CODE.ARROW_RIGHT, ƒ.KEYBOARD_CODE.D])) {
             agentMove.rotateZ(-5);
         }
-        if (ƒ.Keyboard.isPressedOne([ƒ.KEYBOARD_CODE.ARROW_LEFT])) {
+        if (ƒ.Keyboard.isPressedOne([ƒ.KEYBOARD_CODE.ARROW_LEFT, ƒ.KEYBOARD_CODE.A])) {
             agentMove.rotateZ(5);
-        }
-        if (ƒ.Keyboard.isPressedOne([ƒ.KEYBOARD_CODE.ARROW_DOWN])) {
-            agentMove.translateY(-0.1);
         }
     }
 })(Script || (Script = {}));
