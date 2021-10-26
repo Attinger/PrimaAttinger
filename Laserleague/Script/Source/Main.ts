@@ -13,7 +13,7 @@ namespace Script {
   let agentMoveSide: f.Control = new f.Control("Turn", 1, f.CONTROL_TYPE.PROPORTIONAL);
   let agentMaxMoveSpeed: number = 5;
   let agentMaxTurnSpeed: number = 200;
-  let agentStartPos: f.Vector3 = new f.Vector3(-5,-3,1);
+  let agentStartPos: f.Vector3 = new f.Vector3(3,3,0.5);
   agentMoveForward.setDelay(500);
 
   function start(_event: CustomEvent): void {

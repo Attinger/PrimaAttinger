@@ -46,7 +46,7 @@ var Script;
     let agentMoveSide = new f.Control("Turn", 1, 0 /* PROPORTIONAL */);
     let agentMaxMoveSpeed = 5;
     let agentMaxTurnSpeed = 200;
-    let agentStartPos = new f.Vector3(-5, -3, 1);
+    let agentStartPos = new f.Vector3(3, 3, 0.5);
     agentMoveForward.setDelay(500);
     function start(_event) {
         viewport = _event.detail;
