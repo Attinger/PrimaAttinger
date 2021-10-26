@@ -34,53 +34,54 @@ var Script;
 })(Script || (Script = {}));
 var Script;
 (function (Script) {
-    var ƒ = FudgeCore;
-    ƒ.Debug.info("Main Program Template running!");
+    var f = FudgeCore;
+    f.Debug.info("Main Program Template running!");
     let viewport;
-    let laserRotationSpeed = 50;
-    let agentMoveSpeed = 0;
-    let agentMaxMoveSpeed = 5;
-    let agentAccelerationSpeed = 0.1;
     document.addEventListener("interactiveViewportStarted", start);
-    let transform;
-    let agentMove;
+    let agent;
+    let laser;
+    let laserRotationSpeed = 125;
+    let agentTransform;
+    let agentMoveForward = new f.Control("Forward", 1, 0 /* PROPORTIONAL */);
+    let agentMoveSide = new f.Control("Turn", 1, 0 /* PROPORTIONAL */);
+    let agentMaxMoveSpeed = 5;
+    let agentMaxTurnSpeed = 200;
+    let agentStartPos = new f.Vector3(-5, -3, 1);
+    agentMoveForward.setDelay(500);
     function start(_event) {
         viewport = _event.detail;
         let graph = viewport.getBranch();
-        let laser = graph.getChildrenByName("Lasers")[0].getChildrenByName("Laser_one")[0];
-        let agent = graph.getChildrenByName("Agent")[0].getChildrenByName("Agent_one")[0];
-        transform = laser.getComponent(ƒ.ComponentTransform).mtxLocal;
-        agentMove = agent.getComponent(ƒ.ComponentTransform).mtxLocal;
+        laser = graph.getChildrenByName("Lasers")[0].getChildrenByName("Laser_one")[0];
+        let allAgents = graph.getChildrenByName("Agent");
+        agent = allAgents[0].getChildrenByName("Agent_one")[0];
+        agentTransform = agent.getComponent(f.ComponentTransform).mtxLocal;
+        //let laserTransform = laser.getComponent(f.ComponentTransform).mtxLocal;
         viewport.camera.mtxPivot.translateZ(-45);
-        ƒ.Loop.addEventListener("loopFrame" /* LOOP_FRAME */, update);
-        ƒ.Loop.start(ƒ.LOOP_MODE.TIME_REAL, 60);
+        f.Loop.addEventListener("loopFrame" /* LOOP_FRAME */, update);
+        f.Loop.start(f.LOOP_MODE.TIME_REAL, 60); // start the game loop to continously draw the viewport, update the audiosystem and drive the physics i/a
     }
     function update(_event) {
-        transform.rotateZ(laserRotationSpeed * ƒ.Loop.timeFrameReal / 1000);
+        //laserTransform.rotateZ(laserRotationSpeed * f.Loop.timeFrameReal / 1000);
+        let moveForwardValue = (f.Keyboard.mapToValue(1, 0, [f.KEYBOARD_CODE.ARROW_UP, f.KEYBOARD_CODE.W]) + f.Keyboard.mapToValue(-1, 0, [f.KEYBOARD_CODE.ARROW_DOWN, f.KEYBOARD_CODE.S]));
+        agentMoveForward.setInput(moveForwardValue);
+        agentTransform.translateY(agentMoveForward.getOutput() * agentMaxMoveSpeed * f.Loop.timeFrameReal / 1000);
+        let turnSideValue = (f.Keyboard.mapToValue(1, 0, [f.KEYBOARD_CODE.ARROW_LEFT, f.KEYBOARD_CODE.A]) + f.Keyboard.mapToValue(-1, 0, [f.KEYBOARD_CODE.ARROW_RIGHT, f.KEYBOARD_CODE.D]));
+        agentMoveSide.setInput(turnSideValue);
+        agentTransform.rotateZ(agentMoveSide.getOutput() * agentMaxTurnSpeed * f.Loop.timeFrameReal / 1000);
+        let laserbeams = laser.getChildrenByName("Laserbeam");
+        laserbeams.forEach(beam => {
+            beam.getComponent(f.ComponentTransform).mtxLocal.rotateZ(laserRotationSpeed * f.Loop.timeFrameReal / 1000);
+            checkCollision(agent, beam);
+        });
         viewport.draw();
-        ƒ.AudioManager.default.update();
-        //Agent speed erhöhen bei Pfeiltaste nach oben oder W 
-        if (ƒ.Keyboard.isPressedOne([ƒ.KEYBOARD_CODE.ARROW_UP, ƒ.KEYBOARD_CODE.W])) {
-            if (agentMoveSpeed < agentMaxMoveSpeed) {
-                agentMoveSpeed += agentAccelerationSpeed;
-            }
-            agentMove.translateY(agentMoveSpeed * ƒ.Loop.timeFrameReal / 1000);
-        }
-        //Agent speed reduzieren bei Pfeiltaste nach oben oder W 
-        if (ƒ.Keyboard.isPressedOne([ƒ.KEYBOARD_CODE.ARROW_DOWN, ƒ.KEYBOARD_CODE.S])) {
-            if (agentMoveSpeed < agentMaxMoveSpeed) {
-                agentMoveSpeed += agentAccelerationSpeed;
-            }
-            agentMove.translateY(-agentMoveSpeed * ƒ.Loop.timeFrameReal / 1000);
-        }
-        if (!ƒ.Keyboard.isPressedOne([ƒ.KEYBOARD_CODE.ARROW_UP, ƒ.KEYBOARD_CODE.W, ƒ.KEYBOARD_CODE.ARROW_DOWN, ƒ.KEYBOARD_CODE.S])) {
-            agentMoveSpeed = 0;
-        }
-        if (ƒ.Keyboard.isPressedOne([ƒ.KEYBOARD_CODE.ARROW_RIGHT, ƒ.KEYBOARD_CODE.D])) {
-            agentMove.rotateZ(-5);
-        }
-        if (ƒ.Keyboard.isPressedOne([ƒ.KEYBOARD_CODE.ARROW_LEFT, ƒ.KEYBOARD_CODE.A])) {
-            agentMove.rotateZ(5);
+        f.AudioManager.default.update();
+    }
+    function checkCollision(agent, beam) {
+        let distance = f.Vector3.TRANSFORMATION(agent.mtxWorld.translation, beam.mtxWorldInverse, true);
+        let x = beam.getComponent(f.ComponentMesh).mtxPivot.scaling.x / 2 + agent.radius;
+        let y = beam.getComponent(f.ComponentMesh).mtxPivot.scaling.y + agent.radius;
+        if (distance.x <= (x) && distance.x >= -(x) && distance.y <= y && distance.y >= 0) {
+            agentTransform.translate(f.Vector3.TRANSFORMATION(agentStartPos, agent.mtxWorldInverse, true));
         }
     }
 })(Script || (Script = {}));
