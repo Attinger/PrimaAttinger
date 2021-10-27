@@ -3,11 +3,10 @@ namespace Script {
   f.Debug.info("Main Program Template running!");
 
   let viewport: f.Viewport;
-  document.addEventListener("interactiveViewportStarted", <EventListener>start);
+  document.addEventListener("interactiveViewportStarted", <EventListener><unknown>start);
 
   let agent: f.Node;
   let laser: f.Node;
-  let laserRotationSpeed: number = 125;
   let agentTransform: f.Matrix4x4;
   let agentMoveForward: f.Control = new f.Control("Forward", 1, f.CONTROL_TYPE.PROPORTIONAL);
   let agentMoveSide: f.Control = new f.Control("Turn", 1, f.CONTROL_TYPE.PROPORTIONAL);
@@ -15,8 +14,9 @@ namespace Script {
   let agentMaxTurnSpeed: number = 200;
   let agentStartPos: f.Vector3 = new f.Vector3(3,3,0.5);
   agentMoveForward.setDelay(500);
+  let copyLaser: f.GraphInstance;
 
-  function start(_event: CustomEvent): void {
+  async function start(_event: CustomEvent): Promise<void> {
     viewport = _event.detail;
 
     let graph: f.Node = viewport.getBranch();
@@ -26,7 +26,11 @@ namespace Script {
 
     agent = allAgents[0].getChildrenByName("Agent_one")[0];
     agentTransform = agent.getComponent(f.ComponentTransform).mtxLocal;
-    //let laserTransform = laser.getComponent(f.ComponentTransform).mtxLocal;
+    
+    let graphLaser: f.Graph = await f.Project.registerAsGraph(laser, false);
+    copyLaser = await f.Project.createGraphInstance(graphLaser);
+    graph.getChildrenByName("Lasers")[0].addChild(copyLaser);
+    copyLaser.mtxLocal.translateX(-25);
 
 
     viewport.camera.mtxPivot.translateZ(-45);
@@ -57,7 +61,6 @@ namespace Script {
     
     let laserbeams: f.Node[] = laser.getChildrenByName("Laserbeam");
     laserbeams.forEach(beam => {
-      beam.getComponent(f.ComponentTransform).mtxLocal.rotateZ(laserRotationSpeed * f.Loop.timeFrameReal / 1000);
       checkCollision(agent, beam);
     });
 
@@ -69,8 +72,10 @@ namespace Script {
     let distance: f.Vector3 = f.Vector3.TRANSFORMATION(agent.mtxWorld.translation, beam.mtxWorldInverse,true); 
     let x = beam.getComponent(f.ComponentMesh).mtxPivot.scaling.x/2 + agent.radius;
     let y = beam.getComponent(f.ComponentMesh).mtxPivot.scaling.y + agent.radius;
-    if(distance.x <= (x) && distance.x >= -(x) && distance.y <= y && distance.y >= 0) {
-      agentTransform.translate(f.Vector3.TRANSFORMATION(agentStartPos, agent.mtxWorldInverse, true));
+    if(distance.x <= (x) && distance.x >= -(x)  && distance.y <= y && distance.y >= 0) {
+      agentTransform.mutate({
+        translation: agentStartPos,
+      });
     }
   }
 }

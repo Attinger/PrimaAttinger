@@ -40,7 +40,6 @@ var Script;
     document.addEventListener("interactiveViewportStarted", start);
     let agent;
     let laser;
-    let laserRotationSpeed = 125;
     let agentTransform;
     let agentMoveForward = new f.Control("Forward", 1, 0 /* PROPORTIONAL */);
     let agentMoveSide = new f.Control("Turn", 1, 0 /* PROPORTIONAL */);
@@ -48,14 +47,18 @@ var Script;
     let agentMaxTurnSpeed = 200;
     let agentStartPos = new f.Vector3(3, 3, 0.5);
     agentMoveForward.setDelay(500);
-    function start(_event) {
+    let copyLaser;
+    async function start(_event) {
         viewport = _event.detail;
         let graph = viewport.getBranch();
         laser = graph.getChildrenByName("Lasers")[0].getChildrenByName("Laser_one")[0];
         let allAgents = graph.getChildrenByName("Agent");
         agent = allAgents[0].getChildrenByName("Agent_one")[0];
         agentTransform = agent.getComponent(f.ComponentTransform).mtxLocal;
-        //let laserTransform = laser.getComponent(f.ComponentTransform).mtxLocal;
+        let graphLaser = await f.Project.registerAsGraph(laser, false);
+        copyLaser = await f.Project.createGraphInstance(graphLaser);
+        graph.getChildrenByName("Lasers")[0].addChild(copyLaser);
+        copyLaser.mtxLocal.translateX(-25);
         viewport.camera.mtxPivot.translateZ(-45);
         f.Loop.addEventListener("loopFrame" /* LOOP_FRAME */, update);
         f.Loop.start(f.LOOP_MODE.TIME_REAL, 60); // start the game loop to continously draw the viewport, update the audiosystem and drive the physics i/a
@@ -70,7 +73,6 @@ var Script;
         agentTransform.rotateZ(agentMoveSide.getOutput() * agentMaxTurnSpeed * f.Loop.timeFrameReal / 1000);
         let laserbeams = laser.getChildrenByName("Laserbeam");
         laserbeams.forEach(beam => {
-            beam.getComponent(f.ComponentTransform).mtxLocal.rotateZ(laserRotationSpeed * f.Loop.timeFrameReal / 1000);
             checkCollision(agent, beam);
         });
         viewport.draw();
@@ -81,8 +83,47 @@ var Script;
         let x = beam.getComponent(f.ComponentMesh).mtxPivot.scaling.x / 2 + agent.radius;
         let y = beam.getComponent(f.ComponentMesh).mtxPivot.scaling.y + agent.radius;
         if (distance.x <= (x) && distance.x >= -(x) && distance.y <= y && distance.y >= 0) {
-            agentTransform.translate(f.Vector3.TRANSFORMATION(agentStartPos, agent.mtxWorldInverse, true));
+            agentTransform.mutate({
+                translation: agentStartPos,
+            });
         }
     }
+})(Script || (Script = {}));
+var Script;
+(function (Script) {
+    var f = FudgeCore;
+    f.Project.registerScriptNamespace(Script); // Register the namespace to FUDGE for serialization
+    class LaserComponentScript extends f.ComponentScript {
+        // Register the script as component for use in the editor via drag&drop
+        static iSubclass = f.Component.registerSubclass(LaserComponentScript);
+        // Properties may be mutated by users in the editor via the automatically created user interface
+        message = "LaserComponentScript added to ";
+        laserRotationSpeed = 120;
+        constructor() {
+            super();
+            // Don't start when running in editor
+            if (f.Project.mode == f.MODE.EDITOR)
+                return;
+            // Listen to this component being added to or removed from a node
+            this.addEventListener("componentAdd" /* COMPONENT_ADD */, this.hndEvent);
+            this.addEventListener("componentRemove" /* COMPONENT_REMOVE */, this.hndEvent);
+        }
+        rotateLasers = (_event) => {
+            this.node.getComponent(f.ComponentTransform).mtxLocal.rotateZ(this.laserRotationSpeed * f.Loop.timeFrameReal / 1000);
+        };
+        // Activate the functions of this component as response to events
+        hndEvent = (_event) => {
+            switch (_event.type) {
+                case "componentAdd" /* COMPONENT_ADD */:
+                    f.Loop.addEventListener("loopFrame" /* LOOP_FRAME */, this.rotateLasers);
+                    break;
+                case "componentRemove" /* COMPONENT_REMOVE */:
+                    this.removeEventListener("componentAdd" /* COMPONENT_ADD */, this.hndEvent);
+                    this.removeEventListener("componentRemove" /* COMPONENT_REMOVE */, this.hndEvent);
+                    break;
+            }
+        };
+    }
+    Script.LaserComponentScript = LaserComponentScript;
 })(Script || (Script = {}));
 //# sourceMappingURL=Script.js.map

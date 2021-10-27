@@ -359,6 +359,15 @@
                           }
                         }
                       }
+                    ],
+                    "LaserComponentScript": [
+                      {
+                        "Script.LaserComponentScript": {
+                          "active": true,
+                          "message": "LaserComponentScript added to ",
+                          "laserRotationSpeed": 120
+                        }
+                      }
                     ]
                   },
                   "children": [
