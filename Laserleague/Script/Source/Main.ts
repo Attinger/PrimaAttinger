@@ -3,10 +3,11 @@ namespace Script {
   f.Debug.info("Main Program Template running!");
 
   let viewport: f.Viewport;
-  document.addEventListener("interactiveViewportStarted", <EventListener><unknown>start);
+  document.addEventListener("interactiveViewportStarted", <EventListener>start);
 
   let agent: f.Node;
-  let laser: f.Node;
+  let allLasers: f.Node;
+  let lasers: f.Node[];
   let agentTransform: f.Matrix4x4;
   let agentMoveForward: f.Control = new f.Control("Forward", 1, f.CONTROL_TYPE.PROPORTIONAL);
   let agentMoveSide: f.Control = new f.Control("Turn", 1, f.CONTROL_TYPE.PROPORTIONAL);
@@ -14,34 +15,43 @@ namespace Script {
   let agentMaxTurnSpeed: number = 200;
   let agentStartPos: f.Vector3 = new f.Vector3(3,3,0.5);
   agentMoveForward.setDelay(500);
-  let copyLaser: f.GraphInstance;
+  //let copyLaser: f.GraphInstance;
 
-  async function start(_event: CustomEvent): Promise<void> {
+   function start(_event: CustomEvent): void {
     viewport = _event.detail;
 
     let graph: f.Node = viewport.getBranch();
-    laser =  graph.getChildrenByName("Lasers")[0].getChildrenByName("Laser_one")[0];
     let allAgents: f.Node[] = graph.getChildrenByName("Agent");
+    allLasers = graph.getChildrenByName("Lasers")[0];
 
 
     agent = allAgents[0].getChildrenByName("Agent_one")[0];
     agentTransform = agent.getComponent(f.ComponentTransform).mtxLocal;
-    
-    let graphLaser: f.Graph = await f.Project.registerAsGraph(laser, false);
-    copyLaser = await f.Project.createGraphInstance(graphLaser);
-    graph.getChildrenByName("Lasers")[0].addChild(copyLaser);
-    copyLaser.mtxLocal.translateX(-25);
 
-
+    generateLaser().then(() => {
+      lasers = graph.getChildrenByName("Lasers")[0].getChildrenByName("Lasers");
+      f.Loop.addEventListener(f.EVENT.LOOP_FRAME, update);
+    });
+  
     viewport.camera.mtxPivot.translateZ(-45);
 
-    f.Loop.addEventListener(f.EVENT.LOOP_FRAME, update);
     f.Loop.start(f.LOOP_MODE.TIME_REAL, 60); // start the game loop to continously draw the viewport, update the audiosystem and drive the physics i/a
 
   }
 
+  async function generateLaser() {
+    for (let yPos = -1; yPos <= 1; yPos+=2) {
+      for (let xPos = -1; xPos <= 1; xPos++) {
+        let graphLaser: f.Graph = <f.Graph>FudgeCore.Project.resources["Graph|2021-10-28T13:21:46.352Z|48972"];
+        let laser: f.GraphInstance = await f.Project.createGraphInstance(graphLaser);
+        let laserTranslate: f.Vector3 = new f.Vector3(xPos*8,yPos*6,1);
+        laser.getComponent(f.ComponentTransform).mtxLocal.mutate({translation: laserTranslate,});
+        allLasers.addChild(laser);
+      }
+    }
+  }
+
   function update(_event: Event): void {
-    //laserTransform.rotateZ(laserRotationSpeed * f.Loop.timeFrameReal / 1000);
 
     let moveForwardValue: number = (
       f.Keyboard.mapToValue(1, 0, [f.KEYBOARD_CODE.ARROW_UP, f.KEYBOARD_CODE.W]) + f.Keyboard.mapToValue(-1, 0, [f.KEYBOARD_CODE.ARROW_DOWN, f.KEYBOARD_CODE.S])
@@ -58,10 +68,11 @@ namespace Script {
     agentMoveSide.setInput(turnSideValue);
 
     agentTransform.rotateZ(agentMoveSide.getOutput() * agentMaxTurnSpeed * f.Loop.timeFrameReal / 1000); 
-    
-    let laserbeams: f.Node[] = laser.getChildrenByName("Laserbeam");
-    laserbeams.forEach(beam => {
-      checkCollision(agent, beam);
+    lasers.forEach(laser => {
+      let laserBeams: f.Node[] = laser.getChildrenByName("Laser_one")[0].getChildrenByName("Laserbeam");
+      laserBeams.forEach(beam => {
+        checkCollision(agent,beam);
+      });
     });
 
     viewport.draw();

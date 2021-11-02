@@ -39,7 +39,8 @@ var Script;
     let viewport;
     document.addEventListener("interactiveViewportStarted", start);
     let agent;
-    let laser;
+    let allLasers;
+    let lasers;
     let agentTransform;
     let agentMoveForward = new f.Control("Forward", 1, 0 /* PROPORTIONAL */);
     let agentMoveSide = new f.Control("Turn", 1, 0 /* PROPORTIONAL */);
@@ -47,33 +48,44 @@ var Script;
     let agentMaxTurnSpeed = 200;
     let agentStartPos = new f.Vector3(3, 3, 0.5);
     agentMoveForward.setDelay(500);
-    let copyLaser;
-    async function start(_event) {
+    //let copyLaser: f.GraphInstance;
+    function start(_event) {
         viewport = _event.detail;
         let graph = viewport.getBranch();
-        laser = graph.getChildrenByName("Lasers")[0].getChildrenByName("Laser_one")[0];
         let allAgents = graph.getChildrenByName("Agent");
+        allLasers = graph.getChildrenByName("Lasers")[0];
         agent = allAgents[0].getChildrenByName("Agent_one")[0];
         agentTransform = agent.getComponent(f.ComponentTransform).mtxLocal;
-        let graphLaser = await f.Project.registerAsGraph(laser, false);
-        copyLaser = await f.Project.createGraphInstance(graphLaser);
-        graph.getChildrenByName("Lasers")[0].addChild(copyLaser);
-        copyLaser.mtxLocal.translateX(-25);
+        generateLaser().then(() => {
+            lasers = graph.getChildrenByName("Lasers")[0].getChildrenByName("Lasers");
+            f.Loop.addEventListener("loopFrame" /* LOOP_FRAME */, update);
+        });
         viewport.camera.mtxPivot.translateZ(-45);
-        f.Loop.addEventListener("loopFrame" /* LOOP_FRAME */, update);
         f.Loop.start(f.LOOP_MODE.TIME_REAL, 60); // start the game loop to continously draw the viewport, update the audiosystem and drive the physics i/a
     }
+    async function generateLaser() {
+        for (let yPos = -1; yPos <= 1; yPos += 2) {
+            for (let xPos = -1; xPos <= 1; xPos++) {
+                let graphLaser = FudgeCore.Project.resources["Graph|2021-10-28T13:21:46.352Z|48972"];
+                let laser = await f.Project.createGraphInstance(graphLaser);
+                let laserTranslate = new f.Vector3(xPos * 8, yPos * 6, 1);
+                laser.getComponent(f.ComponentTransform).mtxLocal.mutate({ translation: laserTranslate, });
+                allLasers.addChild(laser);
+            }
+        }
+    }
     function update(_event) {
-        //laserTransform.rotateZ(laserRotationSpeed * f.Loop.timeFrameReal / 1000);
         let moveForwardValue = (f.Keyboard.mapToValue(1, 0, [f.KEYBOARD_CODE.ARROW_UP, f.KEYBOARD_CODE.W]) + f.Keyboard.mapToValue(-1, 0, [f.KEYBOARD_CODE.ARROW_DOWN, f.KEYBOARD_CODE.S]));
         agentMoveForward.setInput(moveForwardValue);
         agentTransform.translateY(agentMoveForward.getOutput() * agentMaxMoveSpeed * f.Loop.timeFrameReal / 1000);
         let turnSideValue = (f.Keyboard.mapToValue(1, 0, [f.KEYBOARD_CODE.ARROW_LEFT, f.KEYBOARD_CODE.A]) + f.Keyboard.mapToValue(-1, 0, [f.KEYBOARD_CODE.ARROW_RIGHT, f.KEYBOARD_CODE.D]));
         agentMoveSide.setInput(turnSideValue);
         agentTransform.rotateZ(agentMoveSide.getOutput() * agentMaxTurnSpeed * f.Loop.timeFrameReal / 1000);
-        let laserbeams = laser.getChildrenByName("Laserbeam");
-        laserbeams.forEach(beam => {
-            checkCollision(agent, beam);
+        lasers.forEach(laser => {
+            let laserBeams = laser.getChildrenByName("Laser_one")[0].getChildrenByName("Laserbeam");
+            laserBeams.forEach(beam => {
+                checkCollision(agent, beam);
+            });
         });
         viewport.draw();
         f.AudioManager.default.update();
@@ -109,7 +121,7 @@ var Script;
             this.addEventListener("componentRemove" /* COMPONENT_REMOVE */, this.hndEvent);
         }
         rotateLasers = (_event) => {
-            this.node.getComponent(f.ComponentTransform).mtxLocal.rotateZ(this.laserRotationSpeed * f.Loop.timeFrameReal / 1000);
+            this.node.mtxLocal.rotateZ(this.laserRotationSpeed * f.Loop.timeFrameReal / 1000);
         };
         // Activate the functions of this component as response to events
         hndEvent = (_event) => {

@@ -22,7 +22,7 @@ namespace Script {
       }
 
       public rotateLasers = (_event: Event) => {
-        this.node.getComponent(f.ComponentTransform).mtxLocal.rotateZ(this.laserRotationSpeed * f.Loop.timeFrameReal / 1000);
+        this.node.mtxLocal.rotateZ(this.laserRotationSpeed * f.Loop.timeFrameReal / 1000);
       }
   
       // Activate the functions of this component as response to events
