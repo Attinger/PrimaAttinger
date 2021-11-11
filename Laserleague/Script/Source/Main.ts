@@ -46,10 +46,6 @@ namespace LaserLeague {
 
     Hud.start();
 
-  
-    if (f.KEYBOARD_CODE.ENTER) {
-      hitSound.play(true);
-    };
     
     viewport.camera.mtxPivot.translateZ(-45);
   
