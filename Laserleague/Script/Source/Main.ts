@@ -28,6 +28,7 @@ namespace LaserLeague {
     allLasers = graph.getChildrenByName("Lasers")[0];
 
     gotHit = new f.Audio("./Sound/hit.mp3");
+    
     hitSound = new f.ComponentAudio(gotHit, false, false);
     hitSound.volume = 30;
 
