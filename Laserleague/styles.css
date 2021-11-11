@@ -14,3 +14,12 @@ canvas.fullscreen {
   width: 100vw; 
   height: 100vh; 
 }
+
+.game--hud {
+  position: absolute;
+  top:0;
+  left:0;
+  z-index: 1;
+  color: #fff;
+  background-color:blue;
+}

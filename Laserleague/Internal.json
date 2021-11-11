@@ -389,7 +389,7 @@
               ],
               "LaserComponentScript": [
                 {
-                  "Script.LaserComponentScript": {
+                  "LaserLeague.laserComponentScript": {
                     "active": true,
                     "message": "LaserComponentScript added to ",
                     "laserRotationSpeed": 120

@@ -1,10 +1,10 @@
-namespace Script {
+namespace LaserLeague {
     import f = FudgeCore;
-    f.Project.registerScriptNamespace(Script);  // Register the namespace to FUDGE for serialization
+    f.Project.registerScriptNamespace(LaserLeague);  // Register the namespace to FUDGE for serialization
   
-    export class LaserComponentScript extends f.ComponentScript {
+    export class laserComponentScript extends f.ComponentScript {
       // Register the script as component for use in the editor via drag&drop
-      public static readonly iSubclass: number = f.Component.registerSubclass(LaserComponentScript);
+      public static readonly iSubclass: number = f.Component.registerSubclass(laserComponentScript);
       // Properties may be mutated by users in the editor via the automatically created user interface
       public message: string = "LaserComponentScript added to ";
       public laserRotationSpeed: number = 120;

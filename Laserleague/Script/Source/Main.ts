@@ -1,40 +1,50 @@
-namespace Script {
+namespace LaserLeague {
   import f = FudgeCore;
   f.Debug.info("Main Program Template running!");
 
   let viewport: f.Viewport;
   document.addEventListener("interactiveViewportStarted", <EventListener>start);
 
-  let agent: f.Node;
+  let agent: Agent;
   let allLasers: f.Node;
   let lasers: f.Node[];
+  let root: f.Node;
   let agentTransform: f.Matrix4x4;
   let agentMoveForward: f.Control = new f.Control("Forward", 1, f.CONTROL_TYPE.PROPORTIONAL);
   let agentMoveSide: f.Control = new f.Control("Turn", 1, f.CONTROL_TYPE.PROPORTIONAL);
   let agentMaxMoveSpeed: number = 5;
   let agentMaxTurnSpeed: number = 200;
   let agentStartPos: f.Vector3 = new f.Vector3(3,3,0.5);
+  let cmpAudio: f.ComponentAudio;
+  let gotHit: f.Audio = new f.Audio("./sound/hit.mp3");
   agentMoveForward.setDelay(500);
-  //let copyLaser: f.GraphInstance;
 
    function start(_event: CustomEvent): void {
     viewport = _event.detail;
 
     let graph: f.Node = viewport.getBranch();
-    let allAgents: f.Node[] = graph.getChildrenByName("Agent");
+    agent = new Agent();
+    root = graph.getChildrenByName("Agent")[0];
     allLasers = graph.getChildrenByName("Lasers")[0];
 
+    cmpAudio = new f.ComponentAudio(gotHit, false, false);
+    cmpAudio.connect(true);
+    cmpAudio.volume = 30;
 
-    agent = allAgents[0].getChildrenByName("Agent_one")[0];
+
     agentTransform = agent.getComponent(f.ComponentTransform).mtxLocal;
+    root.addChild(agent);
 
     generateLaser().then(() => {
       lasers = graph.getChildrenByName("Lasers")[0].getChildrenByName("Lasers");
       f.Loop.addEventListener(f.EVENT.LOOP_FRAME, update);
     });
+
+
+    Hud.start();
   
     viewport.camera.mtxPivot.translateZ(-45);
-
+  
     f.Loop.start(f.LOOP_MODE.TIME_REAL, 60); // start the game loop to continously draw the viewport, update the audiosystem and drive the physics i/a
 
   }
@@ -45,7 +55,10 @@ namespace Script {
         let graphLaser: f.Graph = <f.Graph>FudgeCore.Project.resources["Graph|2021-10-28T13:21:46.352Z|48972"];
         let laser: f.GraphInstance = await f.Project.createGraphInstance(graphLaser);
         let laserTranslate: f.Vector3 = new f.Vector3(xPos*8,yPos*6,1);
-        laser.getComponent(f.ComponentTransform).mtxLocal.mutate({translation: laserTranslate,});
+        laser.getComponent(f.ComponentTransform).mtxLocal.mutate(
+          {
+            translation: laserTranslate,
+          });
         allLasers.addChild(laser);
       }
     }
@@ -75,8 +88,10 @@ namespace Script {
       });
     });
 
+
     viewport.draw();
     f.AudioManager.default.update();
+
 
   }
   function checkCollision(agent: f.Node, beam:f.Node){
@@ -84,6 +99,9 @@ namespace Script {
     let x = beam.getComponent(f.ComponentMesh).mtxPivot.scaling.x/2 + agent.radius;
     let y = beam.getComponent(f.ComponentMesh).mtxPivot.scaling.y + agent.radius;
     if(distance.x <= (x) && distance.x >= -(x)  && distance.y <= y && distance.y >= 0) {
+      cmpAudio.play(true);
+      gameState.health -= 0.02;
+      console.log(gameState.health);
       agentTransform.mutate({
         translation: agentStartPos,
       });
