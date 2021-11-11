@@ -14,7 +14,7 @@ namespace LaserLeague {
   let agentMoveSide: f.Control = new f.Control("Turn", 1, f.CONTROL_TYPE.PROPORTIONAL);
   let agentMaxMoveSpeed: number = 5;
   let agentMaxTurnSpeed: number = 200;
-  let agentStartPos: f.Vector3 = new f.Vector3(3,3,0.5);
+  let agentStartPos: f.Vector3 = new f.Vector3(9,1,1);
   let cmpAudio: f.ComponentAudio;
   let gotHit: f.Audio = new f.Audio("./sound/hit.mp3");
   agentMoveForward.setDelay(500);
@@ -33,6 +33,9 @@ namespace LaserLeague {
 
 
     agentTransform = agent.getComponent(f.ComponentTransform).mtxLocal;
+    agentTransform.mutate({
+      translation: agentStartPos,
+    });
     root.addChild(agent);
 
     generateLaser().then(() => {
@@ -79,19 +82,17 @@ namespace LaserLeague {
     );
 
     agentMoveSide.setInput(turnSideValue);
-
     agentTransform.rotateZ(agentMoveSide.getOutput() * agentMaxTurnSpeed * f.Loop.timeFrameReal / 1000); 
+
+    viewport.draw();
+    f.AudioManager.default.update();
+
     lasers.forEach(laser => {
       let laserBeams: f.Node[] = laser.getChildrenByName("Laser_one")[0].getChildrenByName("Laserbeam");
       laserBeams.forEach(beam => {
         checkCollision(agent,beam);
       });
     });
-
-
-    viewport.draw();
-    f.AudioManager.default.update();
-
 
   }
   function checkCollision(agent: f.Node, beam:f.Node){

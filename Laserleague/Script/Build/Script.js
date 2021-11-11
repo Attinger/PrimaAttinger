@@ -51,7 +51,7 @@ var LaserLeague;
     let agentMoveSide = new f.Control("Turn", 1, 0 /* PROPORTIONAL */);
     let agentMaxMoveSpeed = 5;
     let agentMaxTurnSpeed = 200;
-    let agentStartPos = new f.Vector3(3, 3, 0.5);
+    let agentStartPos = new f.Vector3(9, 1, 1);
     let cmpAudio;
     let gotHit = new f.Audio("./sound/hit.mp3");
     agentMoveForward.setDelay(500);
@@ -65,6 +65,9 @@ var LaserLeague;
         cmpAudio.connect(true);
         cmpAudio.volume = 30;
         agentTransform = agent.getComponent(f.ComponentTransform).mtxLocal;
+        agentTransform.mutate({
+            translation: agentStartPos,
+        });
         root.addChild(agent);
         generateLaser().then(() => {
             lasers = graph.getChildrenByName("Lasers")[0].getChildrenByName("Lasers");
@@ -94,14 +97,14 @@ var LaserLeague;
         let turnSideValue = (f.Keyboard.mapToValue(1, 0, [f.KEYBOARD_CODE.ARROW_LEFT, f.KEYBOARD_CODE.A]) + f.Keyboard.mapToValue(-1, 0, [f.KEYBOARD_CODE.ARROW_RIGHT, f.KEYBOARD_CODE.D]));
         agentMoveSide.setInput(turnSideValue);
         agentTransform.rotateZ(agentMoveSide.getOutput() * agentMaxTurnSpeed * f.Loop.timeFrameReal / 1000);
+        viewport.draw();
+        f.AudioManager.default.update();
         lasers.forEach(laser => {
             let laserBeams = laser.getChildrenByName("Laser_one")[0].getChildrenByName("Laserbeam");
             laserBeams.forEach(beam => {
                 checkCollision(agent, beam);
             });
         });
-        viewport.draw();
-        f.AudioManager.default.update();
     }
     function checkCollision(agent, beam) {
         let distance = f.Vector3.TRANSFORMATION(agent.mtxWorld.translation, beam.mtxWorldInverse, true);
