@@ -74,6 +74,10 @@ var LaserLeague;
             f.Loop.addEventListener("loopFrame" /* LOOP_FRAME */, update);
         });
         LaserLeague.Hud.start();
+        if (f.KEYBOARD_CODE.ENTER) {
+            hitSound.play(true);
+        }
+        ;
         viewport.camera.mtxPivot.translateZ(-45);
         f.Loop.start(f.LOOP_MODE.TIME_REAL, 60); // start the game loop to continously draw the viewport, update the audiosystem and drive the physics i/a
     }
