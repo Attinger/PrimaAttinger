@@ -15,7 +15,7 @@ namespace LaserLeague {
   let agentMaxMoveSpeed: number = 5;
   let agentMaxTurnSpeed: number = 200;
   let agentStartPos: f.Vector3 = new f.Vector3(9,1,1);
-  let cmpAudio: f.ComponentAudio;
+  let hitSound: f.ComponentAudio;
   let gotHit: f.Audio = new f.Audio("./sound/hit.mp3");
   agentMoveForward.setDelay(500);
 
@@ -27,9 +27,9 @@ namespace LaserLeague {
     root = graph.getChildrenByName("Agent")[0];
     allLasers = graph.getChildrenByName("Lasers")[0];
 
-    cmpAudio = new f.ComponentAudio(gotHit, false, false);
-    cmpAudio.connect(true);
-    cmpAudio.volume = 30;
+    hitSound = new f.ComponentAudio(gotHit, false, false);
+    hitSound.connect(true);
+    hitSound.volume = 30;
 
 
     agentTransform = agent.getComponent(f.ComponentTransform).mtxLocal;
@@ -100,9 +100,8 @@ namespace LaserLeague {
     let x = beam.getComponent(f.ComponentMesh).mtxPivot.scaling.x/2 + agent.radius;
     let y = beam.getComponent(f.ComponentMesh).mtxPivot.scaling.y + agent.radius;
     if(distance.x <= (x) && distance.x >= -(x)  && distance.y <= y && distance.y >= 0) {
-      cmpAudio.play(true);
+      hitSound.play(true);
       gameState.health -= 0.02;
-      console.log(gameState.health);
       agentTransform.mutate({
         translation: agentStartPos,
       });

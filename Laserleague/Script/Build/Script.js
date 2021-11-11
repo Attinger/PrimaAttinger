@@ -52,7 +52,7 @@ var LaserLeague;
     let agentMaxMoveSpeed = 5;
     let agentMaxTurnSpeed = 200;
     let agentStartPos = new f.Vector3(9, 1, 1);
-    let cmpAudio;
+    let hitSound;
     let gotHit = new f.Audio("./sound/hit.mp3");
     agentMoveForward.setDelay(500);
     function start(_event) {
@@ -61,9 +61,9 @@ var LaserLeague;
         agent = new LaserLeague.Agent();
         root = graph.getChildrenByName("Agent")[0];
         allLasers = graph.getChildrenByName("Lasers")[0];
-        cmpAudio = new f.ComponentAudio(gotHit, false, false);
-        cmpAudio.connect(true);
-        cmpAudio.volume = 30;
+        hitSound = new f.ComponentAudio(gotHit, false, false);
+        hitSound.connect(true);
+        hitSound.volume = 30;
         agentTransform = agent.getComponent(f.ComponentTransform).mtxLocal;
         agentTransform.mutate({
             translation: agentStartPos,
@@ -111,9 +111,8 @@ var LaserLeague;
         let x = beam.getComponent(f.ComponentMesh).mtxPivot.scaling.x / 2 + agent.radius;
         let y = beam.getComponent(f.ComponentMesh).mtxPivot.scaling.y + agent.radius;
         if (distance.x <= (x) && distance.x >= -(x) && distance.y <= y && distance.y >= 0) {
-            cmpAudio.play(true);
+            hitSound.play(true);
             LaserLeague.gameState.health -= 0.02;
-            console.log(LaserLeague.gameState.health);
             agentTransform.mutate({
                 translation: agentStartPos,
             });
