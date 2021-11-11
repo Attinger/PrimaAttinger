@@ -16,7 +16,7 @@ namespace LaserLeague {
   let agentMaxTurnSpeed: number = 200;
   let agentStartPos: f.Vector3 = new f.Vector3(9,1,1);
   let hitSound: f.ComponentAudio;
-  let gotHit: f.Audio = new f.Audio("./sound/hit.mp3");
+  let gotHit: f.Audio;
   agentMoveForward.setDelay(500);
 
    function start(_event: CustomEvent): void {
@@ -27,9 +27,11 @@ namespace LaserLeague {
     root = graph.getChildrenByName("Agent")[0];
     allLasers = graph.getChildrenByName("Lasers")[0];
 
+    gotHit = new f.Audio("./sound/hit.mp3");
     hitSound = new f.ComponentAudio(gotHit, false, false);
     hitSound.connect(true);
     hitSound.volume = 30;
+
 
 
     agentTransform = agent.getComponent(f.ComponentTransform).mtxLocal;
@@ -43,10 +45,8 @@ namespace LaserLeague {
       f.Loop.addEventListener(f.EVENT.LOOP_FRAME, update);
     });
 
-
     Hud.start();
 
-    
     viewport.camera.mtxPivot.translateZ(-45);
   
     f.Loop.start(f.LOOP_MODE.TIME_REAL, 60); // start the game loop to continously draw the viewport, update the audiosystem and drive the physics i/a
