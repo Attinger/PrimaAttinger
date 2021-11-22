@@ -3,8 +3,6 @@ namespace LaserLeague {
   f.Debug.info("Main Program Template running!");
 
   let viewport: f.Viewport;
-  document.addEventListener("interactiveViewportStarted", <EventListener>start);
-
   let agent: Agent;
   let allLasers: f.Node;
   let lasers: f.Node[];
@@ -19,10 +17,21 @@ namespace LaserLeague {
   let gotHit: f.Audio;
   agentMoveForward.setDelay(500);
 
-   function start(_event: CustomEvent): void {
-    viewport = _event.detail;
+  window.addEventListener("load", <EventListener>start);
 
-    let graph: f.Node = viewport.getBranch();
+   async function start(_event: Event): Promise<void> {
+    await f.Project.loadResourcesFromHTML();
+
+    let graph: any = f.Project.resources["Graph|2021-10-07T13:16:51.100Z|50510"];
+    let cmpCamera = new f.ComponentCamera();
+    cmpCamera.mtxPivot.rotateY(180);
+    cmpCamera.mtxPivot.translateZ(-35);
+    graph.addComponent(cmpCamera);
+
+    let canvas = document.querySelector("canvas");
+    viewport = new f.Viewport();
+    viewport.initialize("Viewport", graph, cmpCamera, canvas);
+
     agent = new Agent();
     root = graph.getChildrenByName("Agent")[0];
     allLasers = graph.getChildrenByName("Lasers")[0];

@@ -41,7 +41,6 @@ var LaserLeague;
     var f = FudgeCore;
     f.Debug.info("Main Program Template running!");
     let viewport;
-    document.addEventListener("interactiveViewportStarted", start);
     let agent;
     let allLasers;
     let lasers;
@@ -55,9 +54,17 @@ var LaserLeague;
     let hitSound;
     let gotHit;
     agentMoveForward.setDelay(500);
-    function start(_event) {
-        viewport = _event.detail;
-        let graph = viewport.getBranch();
+    window.addEventListener("load", start);
+    async function start(_event) {
+        await f.Project.loadResourcesFromHTML();
+        let graph = f.Project.resources["Graph|2021-10-07T13:16:51.100Z|50510"];
+        let cmpCamera = new f.ComponentCamera();
+        cmpCamera.mtxPivot.rotateY(180);
+        cmpCamera.mtxPivot.translateZ(-35);
+        graph.addComponent(cmpCamera);
+        let canvas = document.querySelector("canvas");
+        viewport = new f.Viewport();
+        viewport.initialize("Viewport", graph, cmpCamera, canvas);
         agent = new LaserLeague.Agent();
         root = graph.getChildrenByName("Agent")[0];
         allLasers = graph.getChildrenByName("Lasers")[0];
