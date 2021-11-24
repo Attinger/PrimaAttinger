@@ -32,7 +32,8 @@
     "ƒ.MeshRelief": {
       "idResource": "MeshRelief|2021-11-23T13:49:28.039Z|27098",
       "name": "MeshRelief",
-      "type": "MeshRelief"
+      "type": "MeshRelief",
+      "idTexture": "TextureImage|2021-11-23T13:49:16.124Z|84435"
     }
   },
   "Graph|2021-11-18T14:47:10.790Z|95250": {
@@ -51,7 +52,7 @@
                     "pivot": {
                       "translation": "[0, 0, 0]",
                       "rotation": "[0, 0, 0]",
-                      "scaling": "[100, 8, 100]"
+                      "scaling": "[250, 8, 213]"
                     },
                     "Component": {
                       "active": true
@@ -113,7 +114,7 @@
         },
         {
           "ƒ.Node": {
-            "name": "Cart",
+            "name": "Carts",
             "components": {},
             "children": []
           }
@@ -130,6 +131,17 @@
       "Texture": {
         "idResource": "TextureImage|2021-11-23T13:49:16.124Z|84435",
         "name": "texture\\map2.png",
+        "mipmap": "CRISP"
+      }
+    }
+  },
+  "TextureImage|2021-11-24T13:08:16.004Z|94601": {
+    "ƒ.TextureImage": {
+      "url": "texture\\race-track.jpg",
+      "type": "TextureImage",
+      "Texture": {
+        "idResource": "TextureImage|2021-11-24T13:08:16.004Z|94601",
+        "name": "texture\\race-track.jpg",
         "mipmap": "CRISP"
       }
     }

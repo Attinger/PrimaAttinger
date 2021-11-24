@@ -46,14 +46,14 @@ namespace Script {
 
   function createCart(): void {
     cart = new Cart();
-    cartNode = root.getChildrenByName('Cart')[0];
+    cartNode = root.getChildrenByName('Carts')[0];
     appendCamera();
     cartNode.addChild(cart);
   }
 
   function appendCamera(): void {
     camera.mtxPivot.translateZ(0);
-    camera.mtxPivot.translateY(15);
+    camera.mtxPivot.translateY(50);
     camera.mtxPivot.translateX(-35);
     camera.mtxPivot.lookAt(f.Vector3.SUM(cartNode.mtxWorld.translation, f.Vector3.Z(1)), f.Vector3.Y());
     cart.addComponent(camera);

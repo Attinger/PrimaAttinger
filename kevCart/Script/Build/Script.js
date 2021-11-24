@@ -5,12 +5,12 @@ var Script;
     class Cart extends f.Node {
         constructor() {
             super("NewCart");
-            this.addComponent(new f.ComponentTransform);
             this.addComponent(new f.ComponentMesh(new f.MeshCube("MeshCart")));
             this.addComponent(new f.ComponentMaterial(new f.Material("mtrCart", f.ShaderUniColor, new f.CoatColored(new f.Color(1, 0.3, 0, 1)))));
             this.getComponent(f.ComponentMesh).mtxPivot.scaleX(7);
             this.getComponent(f.ComponentMesh).mtxPivot.scaleY(2);
             this.getComponent(f.ComponentMesh).mtxPivot.scaleZ(3);
+            this.addComponent(new f.ComponentTransform);
             this.addComponent(new Script.CartComponentScript);
         }
     }
@@ -148,13 +148,13 @@ var Script;
     }
     function createCart() {
         cart = new Script.Cart();
-        cartNode = root.getChildrenByName('Cart')[0];
+        cartNode = root.getChildrenByName('Carts')[0];
         appendCamera();
         cartNode.addChild(cart);
     }
     function appendCamera() {
         camera.mtxPivot.translateZ(0);
-        camera.mtxPivot.translateY(15);
+        camera.mtxPivot.translateY(50);
         camera.mtxPivot.translateX(-35);
         camera.mtxPivot.lookAt(f.Vector3.SUM(cartNode.mtxWorld.translation, f.Vector3.Z(1)), f.Vector3.Y());
         cart.addComponent(camera);
