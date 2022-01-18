@@ -1,0 +1,186 @@
+namespace Bomberman {
+  import f = FudgeCore;
+  f.Debug.info("Main Program Template running!");
+
+  let viewport: f.Viewport;
+  export let root: f.Node;
+  let userSelected: number;
+  let camera: f.ComponentCamera = new f.ComponentCamera();
+  let agent: Agent;
+  let agentNode: f.Node;
+  //let agentScript: any;
+  //let allBombs: f.Node[];
+  let bomb: Bomb;
+  export let bombNode: f.Node;
+  let canPlaceBomb: boolean = true;
+  let mapParent: f.Node;
+  let mapBase: f.Node;
+  let baseFloor: f.Node;
+  let block: Block;
+  let blockNode: f.Node;
+  let dBlockNode: f.Node;
+  export let dBlockArray: f.Node[];
+  let mapBaseTrnsf: f.Matrix4x4;
+  let scaleFactor: f.Vector3;
+ 
+  window.addEventListener("load", init);
+
+  async function init(_event: Event): Promise<void> {
+    let dialog: HTMLDialogElement = document.querySelector("dialog");
+    dialog.querySelector("h1").textContent = document.title;
+    let gameStartButton: any = document.querySelector('.start--game');
+    gameStartButton.addEventListener("submit", function (_event: any): void {
+      _event.preventDefault();
+      userSelected = _event.target[0].options.selectedIndex;
+      // @ts-ignore until HTMLDialog is implemented by all browsers and available in dom.d.ts
+      dialog.close();
+      start(null);
+    });
+    //@ts-ignore
+    dialog.showModal();
+  }
+
+  async function start(_event: CustomEvent): Promise<void> {
+    await f.Project.loadResourcesFromHTML();
+    buildViewPort();
+    scaleMap();
+    createAgent();
+    //initBomb();
+
+    f.AudioManager.default.listenTo(root);
+    f.AudioManager.default.listenWith(root.getComponent(f.ComponentAudioListener));
+
+    f.Loop.addEventListener(f.EVENT.LOOP_FRAME, update);
+    f.Loop.start(f.LOOP_MODE.TIME_REAL, 60);  // start the game loop to continously draw the viewport, update the audiosystem and drive the physics i/a
+  }
+
+  function buildViewPort(): void {
+    root = <f.Graph>f.Project.resources[document.head.querySelector("meta[autoView]").getAttribute("autoView")]; 
+    let canvas: HTMLCanvasElement = document.querySelector("canvas");
+    viewport = new f.Viewport();
+    viewport.initialize("Viewport", root, camera, canvas);
+  }
+
+  async function scaleMap() {
+    const mapSize = await fetchData();
+    const actualMapSize = mapSize[userSelected].size;
+
+    mapParent = root.getChildrenByName("Floor")[0];
+    mapBase = mapParent.getChildrenByName("World")[0];
+    baseFloor = mapBase.getChildrenByName("Base")[0];
+
+    const cmpTransform: f.ComponentTransform = new f.ComponentTransform;
+    mapBaseTrnsf = mapBase.getComponent(f.ComponentTransform).mtxLocal;
+
+    scaleFactor = new f.Vector3(actualMapSize, 1, actualMapSize);
+    let translateFactor: f.Vector3 = new f.Vector3((actualMapSize/2 - 0.5), 0, (actualMapSize/2 - 0.5));
+    mapBaseTrnsf.mutate({scaling: scaleFactor, translation: translateFactor});
+
+    const rigiBody: f.ComponentRigidbody = new f.ComponentRigidbody(1, f.BODY_TYPE.STATIC, f.COLLIDER_TYPE.CUBE, f.COLLISION_GROUP.DEFAULT, cmpTransform.mtxLocal);
+    rigiBody.initialization = f.BODY_INIT.TO_MESH;
+    baseFloor.addComponent(cmpTransform);
+    baseFloor.addComponent(rigiBody);
+
+    blockNode = mapParent.getChildrenByName("uBlock")[0];
+    dBlockNode = mapParent.getChildrenByName("dBlock")[0];
+    //create upper Blocks
+    createBlocks(actualMapSize);
+    dBlockArray = dBlockNode.getChildren();
+  };
+
+  async function fetchData() {
+    try {
+      const response = await fetch("../mapsize.JSON");
+      const responseObj = await response.json();
+      return responseObj;
+    } catch(error) {
+      return error;
+    }
+  }
+
+  async function createBlocks(actualMapSize: number) {
+    let mapWidth = actualMapSize;
+    let mapHeight = actualMapSize;
+    //TODO: add width and height to loop better.
+    for(let i = 0; i < mapWidth; i++) {
+      for(let j = 0 ; j < mapHeight; j++) {
+        //loop to create walls.
+        if(i==0 || j==0 || i==mapWidth-1 || j==mapHeight-1) {
+          block = new Block(i, j, false, "Block");
+          blockNode.addChild(block);
+        }else {
+          if(i > 1 && j > 1 && i!=mapWidth-2 && j!=mapHeight-2) {
+            let result = checkNumber(i, j);
+            if(result == 0 && (j % 2) == 0) {
+              block = new Block(i, j, false, "Block");
+              blockNode.addChild(block);
+            } else {
+              block = new Block(i, j, true, "DBlockx" + (i+j));
+              dBlockNode.addChild(block);
+            }
+          }
+          else {
+            if(i >= 3 && i <= mapWidth-4 || j >= 3 && j <= mapHeight-4 ) {
+              block = new Block(i, j, true, "DBlocky" + (i+j));
+              dBlockNode.addChild(block);
+            }
+          }
+        }
+      }
+    }
+  }
+
+
+  function checkNumber(i: number, j:number) {
+    let result = i + j;
+    return result % 2;
+  }
+
+  function createAgent(): void {
+    agent = new Agent();
+    agentNode = root.getChildrenByName('Agent')[0];
+    agentNode.addChild(agent);
+    appendCamera();
+    //agentScript = agent.getComponent(AgentComponentScript);
+  }
+
+  function appendCamera(): void {
+    camera.mtxPivot.translateZ(0);
+    camera.mtxPivot.translateY(15);
+    camera.mtxPivot.translateX(-1);
+    camera.mtxPivot.lookAt(f.Vector3.SUM(agentNode.mtxWorld.translation, f.Vector3.Z(0)), f.Vector3.Y(1));
+    agent.addComponent(camera);
+  }
+
+  //function initBomb(): void {
+    //allBombs = root.getChildrenByName("Bomb");
+  //}
+  
+  function update(_event: Event): void {
+    viewport.draw();
+    f.AudioManager.default.update();
+
+    f.Physics.world.simulate();  // if physics is included and use
+    if(f.Keyboard.isPressedOne([f.KEYBOARD_CODE.SPACE]) && canPlaceBomb) {
+      createBomb();
+    }
+    
+  }
+
+  function createBomb() {
+    canPlaceBomb = false;
+    let agentPos = agent.mtxWorld.translation;
+    bombNode = root.getChildrenByName("Bomb")[0];
+    for(let i = 1; i <= 2; i++ ) {
+      if(i == 2) {
+        bomb = new Bomb(agentPos.x, agentPos.y, agentPos.z, true);
+      } else {
+        bomb = new Bomb(agentPos.x, agentPos.y, agentPos.z, false);
+      }
+      bombNode.addChild(bomb); 
+    }
+    setTimeout(()=>{
+      canPlaceBomb = true;
+    }, 3000);
+  }
+}      

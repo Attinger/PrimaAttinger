@@ -1,0 +1,233 @@
+{
+  "MeshCube|2021-12-23T10:53:24.887Z|27954": {
+    "ƒ.MeshCube": {
+      "idResource": "MeshCube|2021-12-23T10:53:24.887Z|27954",
+      "name": "MeshCube",
+      "type": "MeshCube"
+    }
+  },
+  "Material|2021-12-23T10:53:32.908Z|42412": {
+    "ƒ.Material": {
+      "name": "NewMaterial",
+      "idResource": "Material|2021-12-23T10:53:32.908Z|42412",
+      "shader": "ShaderTextureFlat",
+      "coat": {
+        "ƒ.CoatTextured": {
+          "color": "[1, 1, 1, 1]",
+          "idTexture": "TextureImage|2021-12-23T21:08:25.690Z|95186"
+        }
+      }
+    }
+  },
+  "TextureImage|2021-12-23T21:08:25.690Z|95186": {
+    "ƒ.TextureImage": {
+      "url": "assets\\basic-block.jpg",
+      "type": "TextureImage",
+      "Texture": {
+        "idResource": "TextureImage|2021-12-23T21:08:25.690Z|95186",
+        "name": "assets\\basic-block.jpg",
+        "mipmap": "CRISP"
+      }
+    }
+  },
+  "Material|2021-12-24T06:36:02.369Z|69455": {
+    "ƒ.Material": {
+      "name": "NewMaterial",
+      "idResource": "Material|2021-12-24T06:36:02.369Z|69455",
+      "shader": "ShaderTexture",
+      "coat": {
+        "ƒ.CoatTextured": {
+          "color": "[1, 1, 1, 1]"
+        }
+      }
+    }
+  },
+  "Material|2021-12-24T06:37:32.494Z|85985": {
+    "ƒ.Material": {
+      "name": "NewMaterial",
+      "idResource": "Material|2021-12-24T06:37:32.494Z|85985",
+      "shader": "ShaderFlat",
+      "coat": {
+        "ƒ.CoatColored": {
+          "color": "[1, 1, 1, 1]"
+        }
+      }
+    }
+  },
+  "Material|2021-12-31T10:03:36.638Z|06730": {
+    "ƒ.Material": {
+      "name": "NewMaterial",
+      "idResource": "Material|2021-12-31T10:03:36.638Z|06730",
+      "shader": "ShaderTextureFlat",
+      "coat": {
+        "ƒ.CoatTextured": {
+          "color": "[1, 1, 1, 1]",
+          "idTexture": "TextureImage|2021-12-31T10:17:06.681Z|11042"
+        }
+      }
+    }
+  },
+  "TextureImage|2021-12-31T10:17:06.681Z|11042": {
+    "ƒ.TextureImage": {
+      "url": "assets\\ground.jpg",
+      "type": "TextureImage",
+      "Texture": {
+        "idResource": "TextureImage|2021-12-31T10:17:06.681Z|11042",
+        "name": "assets\\ground.jpg",
+        "mipmap": "CRISP"
+      }
+    }
+  },
+  "TextureImage|2021-12-31T10:04:37.835Z|40084": {
+    "ƒ.TextureImage": {
+      "url": "assets\\destroyable-block.jpg",
+      "type": "TextureImage",
+      "Texture": {
+        "idResource": "TextureImage|2021-12-31T10:04:37.835Z|40084",
+        "name": "assets\\destroyable-block.jpg",
+        "mipmap": "MEDIUM"
+      }
+    }
+  },
+  "Graph|2021-12-23T10:53:13.699Z|61212": {
+    "ƒ.Graph": {
+      "name": "Scene",
+      "components": {
+        "ComponentLight": [
+          {
+            "ƒ.ComponentLight": {
+              "pivot": {
+                "translation": "[0, 0, 0]",
+                "rotation": "[0, 0, 0]",
+                "scaling": "[1, 1, 1]"
+              },
+              "light": {
+                "ƒ.LightAmbient": {
+                  "color": "[1, 1, 1, 1]"
+                }
+              }
+            }
+          },
+          {
+            "ƒ.ComponentLight": {
+              "pivot": {
+                "translation": "[0, 0, 0]",
+                "rotation": "[50, 0, 0]",
+                "scaling": "[1, 1, 1]"
+              },
+              "light": {
+                "ƒ.LightDirectional": {
+                  "color": "[1, 1, 1, 1]"
+                }
+              }
+            }
+          }
+        ]
+      },
+      "children": [
+        {
+          "ƒ.Node": {
+            "name": "Floor",
+            "components": {},
+            "children": [
+              {
+                "ƒ.Node": {
+                  "name": "World",
+                  "components": {
+                    "ComponentTransform": [
+                      {
+                        "ƒ.ComponentTransform": {
+                          "local": {
+                            "translation": "[0, 0, 0]",
+                            "rotation": "[0, 0, 0]",
+                            "scaling": "[1, 1, 1]"
+                          },
+                          "Component": {
+                            "active": true
+                          }
+                        }
+                      }
+                    ]
+                  },
+                  "children": [
+                    {
+                      "ƒ.Node": {
+                        "name": "Base",
+                        "components": {
+                          "ComponentMesh": [
+                            {
+                              "ƒ.ComponentMesh": {
+                                "idMesh": "MeshCube|2021-12-23T10:53:24.887Z|27954",
+                                "pivot": {
+                                  "translation": "[0, 0, 0]",
+                                  "rotation": "[0, 0, 0]",
+                                  "scaling": "[1, 1, 1]"
+                                },
+                                "Component": {
+                                  "active": true
+                                }
+                              }
+                            }
+                          ],
+                          "ComponentMaterial": [
+                            {
+                              "ƒ.ComponentMaterial": {
+                                "sortForAlpha": false,
+                                "clrPrimary": "[1, 1, 1, 1]",
+                                "clrSecondary": "[1, 1, 1, 1]",
+                                "pivot": {
+                                  "translation": "[0, 0]",
+                                  "rotation": 0,
+                                  "scaling": "[1, 1]"
+                                },
+                                "Component": {
+                                  "active": true
+                                },
+                                "idMaterial": "Material|2021-12-31T10:03:36.638Z|06730"
+                              }
+                            }
+                          ]
+                        },
+                        "children": []
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "ƒ.Node": {
+                  "name": "dBlock",
+                  "components": {},
+                  "children": []
+                }
+              },
+              {
+                "ƒ.Node": {
+                  "name": "uBlock",
+                  "components": {},
+                  "children": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "ƒ.Node": {
+            "name": "Agent",
+            "components": {},
+            "children": []
+          }
+        },
+        {
+          "ƒ.Node": {
+            "name": "Bomb",
+            "components": {},
+            "children": []
+          }
+        }
+      ],
+      "idResource": "Graph|2021-12-23T10:53:13.699Z|61212",
+      "type": "Graph"
+    }
+  }
+}

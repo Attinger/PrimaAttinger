@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>Bomberman</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" href="styles.css" />
+
+<!--Editor settings of this project-->
+<meta type="settings" autoview="Graph|2021-12-23T10:53:13.699Z|61212" project="{'name':'Bomberman','includeAutoViewScript':false,'graphAutoView':'Graph|2021-12-23T10:53:13.699Z|61212'}" panels="[{'type':'PanelProject','state':{}},{'type':'PanelGraph','state':{'graph':'Graph|2021-12-23T10:53:13.699Z|61212'}}]" />
+
+<!--Activate the following line to include the FUDGE-version of Oimo-Physics. You may want to download a local copy to work offline and be independent from future changes!-->
+<script type="text/javascript" src="https://jirkadelloro.github.io/FUDGE/Physics/OimoPhysics.js"></script>
+
+<!--Load FUDGE. You may want to download local copies to work offline and be independent from future changes! Developers working on FUDGE itself may want to create symlinks-->
+<script type="text/javascript" src="https://jirkadelloro.github.io/FUDGE/Core/Build/FudgeCore.js"></script>
+<script type="text/javascript" src="https://jirkadelloro.github.io/FUDGE/UserInterface\Build/FudgeUserInterface.js"></script>
+<script type="text/javascript" src="https://jirkadelloro.github.io/FUDGE/Aid/Build/FudgeAid.js"></script>
+
+<!--Link internal resources. The editor only loads the first, but at runtime, multiple files can contribute-->
+<link type="resources" src="Internal.json" />
+
+<!--Load custom scripts-->
+<script type="text/javascript" src="Script/Build/Script.js" editor="true"></script>
+</head>
+<body>
+<!--Dialog shown at startup only-->
+<dialog>
+<div class="entry">
+    <div class="entry--text">
+        <h1>Wilkommen bei Bomberman - FPS</h1>
+        <h2>Wähle deine Map Größe</h2>
+    </div>
+
+    <p class="size"> </p>
+    
+    <form class="start--game">
+        <select class="map--select">
+            <option value="small" class="btn">kleine Map</option>
+            <option value="medium" class="btn">mittlere Map</option>
+            <option value="large" class="btn">Große Map</option>
+        </select>
+        <input class="helper--class" type="text" value="" />
+        <button>Starte das Spiel</button>
+    </form>
+</div>
+
+</dialog>
+<!--Canvas for FUDGE to render to-->
+<canvas class="fullscreen">
+</canvas>
+
+<script>
+    //TODO: find a different logic about value. Maybe trigger game-start on mapSize selection or if you want to start the game with a ,,start'' button, then disable it aslong as the player
+    //didnt select a mapSize.
+    function addClass(clicked_id){
+      let helper = document.querySelector('.size');
+      helper.textContent = clicked_id;
+    }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</body>
+</html>
