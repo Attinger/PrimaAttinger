@@ -25,60 +25,27 @@
 <body>
 <!--Dialog shown at startup only-->
 <dialog>
-<div class="entry">
-    <div class="entry--text">
-        <h1>Wilkommen bei Bomberman - FPS</h1>
-        <h2>Wähle deine Map Größe</h2>
+    <div class="entry">
+        <div class="entry--text">
+            <h1 class="rainbow">Bomberman</h1>
+            <h2>Wähle deine Map Größe:</h2>
+        </div>
+
+        <p class="size"> </p>
+
+        <form class="start--game">
+            <select class="map--select">
+                <option value="small" class="btn">kleine Map</option>
+                <option value="medium" class="btn">mittlere Map</option>
+                <option value="large" class="btn">Große Map</option>
+            </select>
+            <button>Starte das Spiel</button>
+        </form>
     </div>
-
-    <p class="size"> </p>
-    
-    <form class="start--game">
-        <select class="map--select">
-            <option value="small" class="btn">kleine Map</option>
-            <option value="medium" class="btn">mittlere Map</option>
-            <option value="large" class="btn">Große Map</option>
-        </select>
-        <input class="helper--class" type="text" value="" />
-        <button>Starte das Spiel</button>
-    </form>
-</div>
-
 </dialog>
-<!--Canvas for FUDGE to render to-->
-<canvas class="fullscreen">
-</canvas>
-
-<script>
-    //TODO: find a different logic about value. Maybe trigger game-start on mapSize selection or if you want to start the game with a ,,start'' button, then disable it aslong as the player
-    //didnt select a mapSize.
-    function addClass(clicked_id){
-      let helper = document.querySelector('.size');
-      helper.textContent = clicked_id;
-    }
-</script>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    <!--Canvas for FUDGE to render to-->
+    <canvas class="fullscreen">
+    </canvas>
 
 </body>
 </html>

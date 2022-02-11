@@ -224,6 +224,13 @@
             "components": {},
             "children": []
           }
+        },
+        {
+          "ƒ.Node": {
+            "name": "NPCs",
+            "components": {},
+            "children": []
+          }
         }
       ],
       "idResource": "Graph|2021-12-23T10:53:13.699Z|61212",

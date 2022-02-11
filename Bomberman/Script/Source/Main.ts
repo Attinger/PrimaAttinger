@@ -8,10 +8,14 @@ namespace Bomberman {
   let camera: f.ComponentCamera = new f.ComponentCamera();
   let agent: Agent;
   let agentNode: f.Node;
-  //let agentScript: any;
-  //let allBombs: f.Node[];
+  let npcOne: Npc;
+  let npcTwo: Npc;
+  let npcThree: Npc;
+  let npcNode: f.Node;
   let bomb: Bomb;
   export let bombNode: f.Node;
+  export let theBomb: f.Node;
+  export let flame: Flames;
   let canPlaceBomb: boolean = true;
   let mapParent: f.Node;
   let mapBase: f.Node;
@@ -25,9 +29,8 @@ namespace Bomberman {
  
   window.addEventListener("load", init);
 
-  async function init(_event: Event): Promise<void> {
+  function init(_event: Event): void {
     let dialog: HTMLDialogElement = document.querySelector("dialog");
-    dialog.querySelector("h1").textContent = document.title;
     let gameStartButton: any = document.querySelector('.start--game');
     gameStartButton.addEventListener("submit", function (_event: any): void {
       _event.preventDefault();
@@ -44,13 +47,13 @@ namespace Bomberman {
     await f.Project.loadResourcesFromHTML();
     buildViewPort();
     scaleMap();
-    createAgent();
     //initBomb();
 
     f.AudioManager.default.listenTo(root);
     f.AudioManager.default.listenWith(root.getComponent(f.ComponentAudioListener));
 
     f.Loop.addEventListener(f.EVENT.LOOP_FRAME, update);
+    viewport.physicsDebugMode = f.PHYSICS_DEBUGMODE.COLLIDERS;
     f.Loop.start(f.LOOP_MODE.TIME_REAL, 60);  // start the game loop to continously draw the viewport, update the audiosystem and drive the physics i/a
   }
 
@@ -61,8 +64,8 @@ namespace Bomberman {
     viewport.initialize("Viewport", root, camera, canvas);
   }
 
-  async function scaleMap() {
-    const mapSize = await fetchData();
+   async function scaleMap() {
+    let mapSize = await fetchData();
     const actualMapSize = mapSize[userSelected].size;
 
     mapParent = root.getChildrenByName("Floor")[0];
@@ -83,8 +86,9 @@ namespace Bomberman {
 
     blockNode = mapParent.getChildrenByName("uBlock")[0];
     dBlockNode = mapParent.getChildrenByName("dBlock")[0];
-    //create upper Blocks
+    //create upper Blocks and Agent
     createBlocks(actualMapSize);
+    createChars(actualMapSize);
     dBlockArray = dBlockNode.getChildren();
   };
 
@@ -98,7 +102,7 @@ namespace Bomberman {
     }
   }
 
-  async function createBlocks(actualMapSize: number) {
+  function createBlocks(actualMapSize: number) {
     let mapWidth = actualMapSize;
     let mapHeight = actualMapSize;
     //TODO: add width and height to loop better.
@@ -106,22 +110,22 @@ namespace Bomberman {
       for(let j = 0 ; j < mapHeight; j++) {
         //loop to create walls.
         if(i==0 || j==0 || i==mapWidth-1 || j==mapHeight-1) {
-          block = new Block(i, j, false, "Block");
+          block = new Block(i, j, false, "Wall");
           blockNode.addChild(block);
         }else {
           if(i > 1 && j > 1 && i!=mapWidth-2 && j!=mapHeight-2) {
             let result = checkNumber(i, j);
             if(result == 0 && (j % 2) == 0) {
-              block = new Block(i, j, false, "Block");
+              block = new Block(i, j, false, "Wall");
               blockNode.addChild(block);
             } else {
-              block = new Block(i, j, true, "DBlockx" + (i+j));
+              block = new Block(i, j, true, "DBlock");
               dBlockNode.addChild(block);
             }
           }
           else {
             if(i >= 3 && i <= mapWidth-4 || j >= 3 && j <= mapHeight-4 ) {
-              block = new Block(i, j, true, "DBlocky" + (i+j));
+              block = new Block(i, j, true, "DBlock");
               dBlockNode.addChild(block);
             }
           }
@@ -136,12 +140,22 @@ namespace Bomberman {
     return result % 2;
   }
 
-  function createAgent(): void {
+  function createChars(mapSize: number): void {
+    let mapWidth = mapSize - 2;
+    let mapHeight = mapSize -2;
+
     agent = new Agent();
+    npcOne = new Npc(1, 1, mapHeight);
+    npcTwo = new Npc(mapWidth, 1, mapHeight);
+    npcThree = new Npc(mapWidth, 1, 1);
+
     agentNode = root.getChildrenByName('Agent')[0];
+    npcNode = root.getChildrenByName('NPCs')[0];
     agentNode.addChild(agent);
+    npcNode.addChild(npcOne);
+    npcNode.addChild(npcTwo);
+    npcNode.addChild(npcThree);
     appendCamera();
-    //agentScript = agent.getComponent(AgentComponentScript);
   }
 
   function appendCamera(): void {
@@ -151,10 +165,6 @@ namespace Bomberman {
     camera.mtxPivot.lookAt(f.Vector3.SUM(agentNode.mtxWorld.translation, f.Vector3.Z(0)), f.Vector3.Y(1));
     agent.addComponent(camera);
   }
-
-  //function initBomb(): void {
-    //allBombs = root.getChildrenByName("Bomb");
-  //}
   
   function update(_event: Event): void {
     viewport.draw();
@@ -171,14 +181,9 @@ namespace Bomberman {
     canPlaceBomb = false;
     let agentPos = agent.mtxWorld.translation;
     bombNode = root.getChildrenByName("Bomb")[0];
-    for(let i = 1; i <= 2; i++ ) {
-      if(i == 2) {
-        bomb = new Bomb(agentPos.x, agentPos.y, agentPos.z, true);
-      } else {
-        bomb = new Bomb(agentPos.x, agentPos.y, agentPos.z, false);
-      }
-      bombNode.addChild(bomb); 
-    }
+    bomb = new Bomb(agentPos.x, agentPos.y, agentPos.z);
+    bombNode.addChild(bomb); 
+    theBomb = bombNode.getChildrenByName("NewBomb")[0];
     setTimeout(()=>{
       canPlaceBomb = true;
     }, 3000);
