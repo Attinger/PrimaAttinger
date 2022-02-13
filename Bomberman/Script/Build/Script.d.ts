@@ -27,6 +27,7 @@ declare namespace Bomberman {
     class Block extends f.Node {
         private blockPosition;
         constructor(xPos: number, yPos: number, destroyable: boolean, name: string);
+        explosion: (_event: any) => void;
     }
 }
 declare namespace Bomberman {
@@ -45,11 +46,16 @@ declare namespace Bomberman {
     }
 }
 declare namespace Bomberman {
+    class DataEvent extends Event {
+        private data;
+        constructor(type: string, eventInitDict: EventInit, data: any);
+        getData(): any;
+    }
+}
+declare namespace Bomberman {
     import f = FudgeCore;
     class Flames extends f.Node {
-        private body;
-        constructor(x: number, y: number, z: number, scale: number);
-        handleCollisionEnter(_event: f.EventPhysics): void;
+        constructor(x: number, y: number, z: number, scale: number, worldpos: f.Vector3);
     }
 }
 declare namespace Bomberman {

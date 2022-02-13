@@ -5,7 +5,7 @@ var Bomberman;
     class Agent extends f.Node {
         constructor() {
             super("NewAgent");
-            let agentPosition = new f.Vector3(1, 2, 1);
+            let agentPosition = new f.Vector3(1, 1, 1);
             const cmpTransform = new f.ComponentTransform;
             this.addComponent(new f.ComponentMesh(new f.MeshCube("MeshAgent")));
             this.addComponent(new f.ComponentMaterial(new f.Material("mtrAgent", f.ShaderUniColor, new f.CoatColored(new f.Color(1, 0.3, 0, 1)))));
@@ -14,7 +14,7 @@ var Bomberman;
             this.getComponent(f.ComponentMesh).mtxPivot.scaleZ(0.5);
             this.getComponent(f.ComponentMesh).mtxPivot.rotateY(90);
             this.addComponent(cmpTransform);
-            const body = new f.ComponentRigidbody(0.5, f.BODY_TYPE.DYNAMIC, f.COLLIDER_TYPE.CUBE, f.COLLISION_GROUP.DEFAULT, cmpTransform.mtxLocal);
+            const body = new f.ComponentRigidbody(0.1, f.BODY_TYPE.DYNAMIC, f.COLLIDER_TYPE.CUBE, f.COLLISION_GROUP.DEFAULT, cmpTransform.mtxLocal);
             body.initialization = f.BODY_INIT.TO_MESH;
             this.addComponent(body);
             this.getComponent(f.ComponentTransform).mtxLocal.mutate({ translation: agentPosition, });
@@ -41,8 +41,8 @@ var Bomberman;
         bombTimeOut = 1500;
         constructor() {
             super();
-            this.agentControlForward = new f.Control("Forward", 5, 0 /* PROPORTIONAL */);
-            this.agentControlTurn = new f.Control("Turn", 5, 0 /* PROPORTIONAL */);
+            this.agentControlForward = new f.Control("Forward", 1, 0 /* PROPORTIONAL */);
+            this.agentControlTurn = new f.Control("Turn", 1, 0 /* PROPORTIONAL */);
             this.agentControlForward.setDelay(10);
             this.agentControlTurn.setDelay(10);
             // Don't start when running in editor
@@ -92,27 +92,31 @@ var Bomberman;
             this.blockPosition = new f.Vector3(xPos, 1, yPos);
             const cmpTransform = new f.ComponentTransform;
             this.addComponent(new f.ComponentMesh(new f.MeshCube("MeshBlock")));
-            let blockTexture = new f.TextureImage();
-            blockTexture.load("../assets/basic-block.jpg");
-            let coat = new f.CoatTextured(new f.Color(255, 255, 255, 255), blockTexture);
-            let destoryableTexture = new f.TextureImage();
-            destoryableTexture.load("../assets/destroyable-block.jpg");
-            let coatDestroy = new f.CoatTextured(new f.Color(255, 255, 255, 255), destoryableTexture);
             if (!destroyable) {
-                this.addComponent(new f.ComponentMaterial(new f.Material("Texture", f.ShaderTextureFlat, coat)));
-                const body = new f.ComponentRigidbody(1, f.BODY_TYPE.KINEMATIC, f.COLLIDER_TYPE.CUBE, f.COLLISION_GROUP.DEFAULT, cmpTransform.mtxLocal);
+                this.addComponent(new ƒ.ComponentMaterial(new ƒ.Material("mtrAgent", ƒ.ShaderUniColor, new ƒ.CoatColored(new ƒ.Color(0.1, 0, 3, 2)))));
+                const body = new f.ComponentRigidbody(1, f.BODY_TYPE.STATIC, f.COLLIDER_TYPE.CUBE, f.COLLISION_GROUP.DEFAULT, cmpTransform.mtxLocal);
                 body.initialization = f.BODY_INIT.TO_MESH;
                 this.addComponent(body);
             }
             else {
-                const body = new f.ComponentRigidbody(1, f.BODY_TYPE.KINEMATIC, f.COLLIDER_TYPE.CUBE, f.COLLISION_GROUP.DEFAULT, cmpTransform.mtxLocal);
+                const body = new f.ComponentRigidbody(1, f.BODY_TYPE.STATIC, f.COLLIDER_TYPE.CUBE, f.COLLISION_GROUP.DEFAULT, cmpTransform.mtxLocal);
                 body.initialization = f.BODY_INIT.TO_MESH;
                 this.addComponent(body);
-                this.addComponent(new f.ComponentMaterial(new f.Material("Texture", f.ShaderTextureFlat, coatDestroy)));
+                this.addComponent(new ƒ.ComponentMaterial(new ƒ.Material("mtrAgent", ƒ.ShaderUniColor, new ƒ.CoatColored(new ƒ.Color(1, 0, 1, 1)))));
+                Bomberman.root.addEventListener("bombExploded", this.explosion);
             }
             this.addComponent(cmpTransform);
             this.getComponent(f.ComponentTransform).mtxLocal.mutate({ translation: this.blockPosition, });
         }
+        explosion = (_event) => {
+            const flamePos = new f.Vector3(_event.data.x, _event.data.y, _event.data.z);
+            if (this.getComponent(f.ComponentRigidbody) != undefined) {
+                if (flamePos.equals(this.mtxWorld.translation, 0.1)) {
+                    this.removeComponent(this.getComponent(f.ComponentRigidbody));
+                    this.getParent().removeChild(this);
+                }
+            }
+        };
     }
     Bomberman.Block = Block;
 })(Bomberman || (Bomberman = {}));
@@ -122,7 +126,7 @@ var Bomberman;
     class Bomb extends f.Node {
         constructor(x, y, z) {
             super("NewBomb");
-            let bombPosition = new f.Vector3(Math.floor(x), y, Math.floor(z));
+            let bombPosition = new f.Vector3(Math.round(x), y, Math.round(z));
             let bombTimer = 1000;
             const cmpTransform = new f.ComponentTransform;
             let bombTexture = new f.TextureImage();
@@ -135,17 +139,16 @@ var Bomberman;
             this.addComponent(cmpTransform);
             this.getComponent(f.ComponentTransform).mtxLocal.mutate({ translation: bombPosition, });
             this.getComponent(f.ComponentMesh).mtxPivot.scaleX(0.5);
-            this.getComponent(f.ComponentMesh).mtxPivot.scaleY(1);
+            this.getComponent(f.ComponentMesh).mtxPivot.scaleY(0.01);
             this.getComponent(f.ComponentMesh).mtxPivot.scaleZ(0.5);
             setTimeout(() => {
-                let bombPos = this.mtxLocal.translation;
-                console.log(bombPos);
                 this.removeComponent(this.getComponent(f.ComponentMaterial));
                 for (let i = 1; i <= 1; i++) {
-                    this.addChild(new Bomberman.Flames(i, 0, 0, 1));
-                    this.addChild(new Bomberman.Flames(-i, 0, 0, 1));
-                    this.addChild(new Bomberman.Flames(0, 0, i, 1));
-                    this.addChild(new Bomberman.Flames(0, 0, -i, 1));
+                    this.addChild(new Bomberman.Flames(i, 0, 0, 1, this.mtxWorld.translation));
+                    this.addChild(new Bomberman.Flames(-i, 0, 0, 1, this.mtxWorld.translation));
+                    this.addChild(new Bomberman.Flames(0, 0, i, 1, this.mtxWorld.translation));
+                    this.addChild(new Bomberman.Flames(0, 0, -i, 1, this.mtxWorld.translation));
+                    this.addChild(new Bomberman.Flames(0, 0, 0, 1, this.mtxWorld.translation));
                 }
             }, bombTimer);
         }
@@ -191,12 +194,25 @@ var Bomberman;
 })(Bomberman || (Bomberman = {}));
 var Bomberman;
 (function (Bomberman) {
+    class DataEvent extends Event {
+        data;
+        constructor(type, eventInitDict, data) {
+            super(type, eventInitDict);
+            this.data = data;
+        }
+        getData() {
+            return this.data;
+        }
+    }
+    Bomberman.DataEvent = DataEvent;
+})(Bomberman || (Bomberman = {}));
+var Bomberman;
+(function (Bomberman) {
     var f = FudgeCore;
     class Flames extends f.Node {
-        body;
-        constructor(x, y, z, scale) {
+        constructor(x, y, z, scale, worldpos) {
             super("Flame");
-            console.log(scale);
+            //console.log(scale);
             let flamePosition = new f.Vector3(x, y, z);
             let flameTimer = 1000;
             const cmpTransform = new f.ComponentTransform;
@@ -206,38 +222,15 @@ var Bomberman;
             this.addComponent(new f.ComponentMesh(new f.MeshCube("MeshFlameX")));
             this.addComponent(new f.ComponentMaterial(new f.Material("Texture", f.ShaderTextureFlat, explosionCoat)));
             this.addComponent(cmpTransform);
-            this.body = new f.ComponentRigidbody(1, f.BODY_TYPE.DYNAMIC, f.COLLIDER_TYPE.CUBE, f.COLLISION_GROUP.DEFAULT, cmpTransform.mtxLocal);
-            this.body.initialization = f.BODY_INIT.TO_MESH;
-            this.body.addEventListener("ColliderEnteredCollision" /* COLLISION_ENTER */, this.handleCollisionEnter);
-            this.addComponent(this.body);
-            this.body.setPosition(new f.Vector3(x, y, z));
             this.cmpTransform.mtxLocal.mutate({ translation: flamePosition });
-            this.getComponent(f.ComponentMesh).mtxPivot.scaleX(1);
-            this.getComponent(f.ComponentMesh).mtxPivot.scaleY(1);
-            this.getComponent(f.ComponentMesh).mtxPivot.scaleZ(1);
+            this.getComponent(f.ComponentMesh).mtxPivot.scaleX(0.9);
+            this.getComponent(f.ComponentMesh).mtxPivot.scaleY(0.01);
+            this.getComponent(f.ComponentMesh).mtxPivot.scaleZ(0.9);
+            let bombExplosion = new Bomberman.DataEvent("bombExploded", { "bubbles": true, "cancelable": false }, new f.Vector3(worldpos.x + flamePosition.x, worldpos.y + flamePosition.y, worldpos.z + flamePosition.z));
+            Bomberman.root.dispatchEvent(bombExplosion);
             setTimeout(() => {
-                this.removeComponent(this.getComponent(f.ComponentRigidbody));
                 this.getParent().removeChild(this);
             }, flameTimer);
-        }
-        handleCollisionEnter(_event) {
-            console.log(this);
-            //this.collisions.forEach((elem: any)=> {
-            // console.log(elem.node.name);
-            //  if(elem.node.name == "DBlock") {
-            //  const test = elem.node;
-            //  test.removeComponent(elem);
-            // test.getParent().removeChild(test);
-            // const flame = this.node;
-            // flame.removeComponent(this);
-            //      flame.getParent().removeChild(flame);
-            // }
-            // if(elem.node.name == "Wall") {
-            // const flame = this.node;
-            //  flame.removeComponent(this);
-            //  flame.getParent().removeChild(flame);
-            // }
-            //})
         }
     }
     Bomberman.Flames = Flames;
@@ -306,12 +299,12 @@ var Bomberman;
     async function start(_event) {
         await f.Project.loadResourcesFromHTML();
         buildViewPort();
-        scaleMap();
+        await scaleMap();
         //initBomb();
         f.AudioManager.default.listenTo(Bomberman.root);
         f.AudioManager.default.listenWith(Bomberman.root.getComponent(f.ComponentAudioListener));
         f.Loop.addEventListener("loopFrame" /* LOOP_FRAME */, update);
-        viewport.physicsDebugMode = f.PHYSICS_DEBUGMODE.COLLIDERS;
+        //viewport.physicsDebugMode = f.PHYSICS_DEBUGMODE.COLLIDERS;
         f.Loop.start(f.LOOP_MODE.TIME_REAL, 60); // start the game loop to continously draw the viewport, update the audiosystem and drive the physics i/a
     }
     function buildViewPort() {
@@ -345,7 +338,7 @@ var Bomberman;
     ;
     async function fetchData() {
         try {
-            const response = await fetch("../Bomberman/mapsize.json");
+            const response = await fetch("../mapsize.json");
             const responseObj = await response.json();
             return responseObj;
         }

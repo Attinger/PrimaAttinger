@@ -12,29 +12,39 @@ namespace Bomberman {
 
   
         this.addComponent(new f.ComponentMesh(new f.MeshCube("MeshBlock")));
-        let blockTexture: f.TextureImage = new f.TextureImage();
-        blockTexture.load("../assets/basic-block.jpg");
-        let coat: f.CoatTextured = new f.CoatTextured(new f.Color(255,255,255,255), blockTexture);
 
-        let destoryableTexture: f.TextureImage = new f.TextureImage();
-        destoryableTexture.load("../assets/destroyable-block.jpg");
-        let coatDestroy: f.CoatTextured = new f.CoatTextured(new f.Color(255,255,255,255), destoryableTexture);
         if(!destroyable) {
-          this.addComponent(new f.ComponentMaterial(new f.Material("Texture",f.ShaderTextureFlat,coat)));
-          const body = new f.ComponentRigidbody(1,f.BODY_TYPE.KINEMATIC, f.COLLIDER_TYPE.CUBE, f.COLLISION_GROUP.DEFAULT, cmpTransform.mtxLocal);
+          this.addComponent(new ƒ.ComponentMaterial(
+            new ƒ.Material("mtrAgent", ƒ.ShaderUniColor, new ƒ.CoatColored(new ƒ.Color(0.1, 0, 3, 2))))
+          );
+          const body = new f.ComponentRigidbody(1,f.BODY_TYPE.STATIC, f.COLLIDER_TYPE.CUBE, f.COLLISION_GROUP.DEFAULT, cmpTransform.mtxLocal);
           body.initialization = f.BODY_INIT.TO_MESH;
           this.addComponent(body);
         } else {
-          const body = new f.ComponentRigidbody(1,f.BODY_TYPE.KINEMATIC, f.COLLIDER_TYPE.CUBE, f.COLLISION_GROUP.DEFAULT, cmpTransform.mtxLocal);
+          const body = new f.ComponentRigidbody(1,f.BODY_TYPE.STATIC, f.COLLIDER_TYPE.CUBE, f.COLLISION_GROUP.DEFAULT, cmpTransform.mtxLocal);
           body.initialization = f.BODY_INIT.TO_MESH;
           this.addComponent(body);
-          this.addComponent(new f.ComponentMaterial(new f.Material("Texture",f.ShaderTextureFlat,coatDestroy)));
+          this.addComponent(new ƒ.ComponentMaterial(
+            new ƒ.Material("mtrAgent", ƒ.ShaderUniColor, new ƒ.CoatColored(new ƒ.Color(1, 0, 1, 1))))
+          );
+          root.addEventListener("bombExploded", this.explosion);
         }
+
         
         this.addComponent(cmpTransform);
 
         this.getComponent(f.ComponentTransform).mtxLocal.mutate({translation: this.blockPosition,});
       }
 
+      public explosion = (_event: any)  => {
+
+        const flamePos: f.Vector3 = new f.Vector3(_event.data.x, _event.data.y, _event.data.z);
+        if(this.getComponent(f.ComponentRigidbody) != undefined) {
+          if(flamePos.equals(this.mtxWorld.translation, 0.1)) {
+            this.removeComponent(this.getComponent(f.ComponentRigidbody));
+            this.getParent().removeChild(this);
+          }
+        }
+      }
     }
   }

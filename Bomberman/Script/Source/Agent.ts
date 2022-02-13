@@ -6,7 +6,7 @@ namespace Bomberman {
   
             super("NewAgent");
 
-            let agentPosition: f.Vector3 = new f.Vector3(1,2,1);
+            let agentPosition: f.Vector3 = new f.Vector3(1,1,1);
             const cmpTransform: f.ComponentTransform = new f.ComponentTransform;
             
   
@@ -20,7 +20,7 @@ namespace Bomberman {
             this.getComponent(f.ComponentMesh).mtxPivot.scaleZ(0.5);
             this.getComponent(f.ComponentMesh).mtxPivot.rotateY(90);
             this.addComponent(cmpTransform);
-            const body = new f.ComponentRigidbody(0.5,f.BODY_TYPE.DYNAMIC, f.COLLIDER_TYPE.CUBE, f.COLLISION_GROUP.DEFAULT, cmpTransform.mtxLocal);
+            const body = new f.ComponentRigidbody(0.1,f.BODY_TYPE.DYNAMIC, f.COLLIDER_TYPE.CUBE, f.COLLISION_GROUP.DEFAULT, cmpTransform.mtxLocal);
             body.initialization = f.BODY_INIT.TO_MESH;
             this.addComponent(body);
 

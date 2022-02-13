@@ -46,14 +46,14 @@ namespace Bomberman {
   async function start(_event: CustomEvent): Promise<void> {
     await f.Project.loadResourcesFromHTML();
     buildViewPort();
-    scaleMap();
+    await scaleMap();
     //initBomb();
 
     f.AudioManager.default.listenTo(root);
     f.AudioManager.default.listenWith(root.getComponent(f.ComponentAudioListener));
 
     f.Loop.addEventListener(f.EVENT.LOOP_FRAME, update);
-    viewport.physicsDebugMode = f.PHYSICS_DEBUGMODE.COLLIDERS;
+    //viewport.physicsDebugMode = f.PHYSICS_DEBUGMODE.COLLIDERS;
     f.Loop.start(f.LOOP_MODE.TIME_REAL, 60);  // start the game loop to continously draw the viewport, update the audiosystem and drive the physics i/a
   }
 
@@ -94,7 +94,7 @@ namespace Bomberman {
 
   async function fetchData() {
     try {
-      const response = await fetch("../Bomberman/mapsize.json");
+      const response = await fetch("../mapsize.json");
       const responseObj = await response.json();
       return responseObj;
     } catch(error) {
