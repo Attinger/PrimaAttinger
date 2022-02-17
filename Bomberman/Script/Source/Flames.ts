@@ -3,7 +3,7 @@ namespace Bomberman {
   
     export class Flames extends f.Node {
 
-        constructor(x:number, y:number, z:number, scale: number, worldpos: f.Vector3) {
+        constructor(x:number, y:number, z:number, worldpos: f.Vector3) {
   
             super("Flame");
 
@@ -11,7 +11,7 @@ namespace Bomberman {
 
             let flamePosition: f.Vector3 = new f.Vector3(x,y,z);
             let flameTimer: number = 1000;
-            const cmpTransform = new f.ComponentTransform;
+            const cmpTransform: f.ComponentTransform = new f.ComponentTransform;
 
             let explosionTexture: f.TextureImage = new f.TextureImage();
             explosionTexture.load("../assets/explosion.png");

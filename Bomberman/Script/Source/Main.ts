@@ -6,13 +6,13 @@ namespace Bomberman {
   export let root: f.Node;
   let userSelected: number;
   let camera: f.ComponentCamera = new f.ComponentCamera();
-  let agent: Agent;
+  export let agent: Agent;
   let agentNode: f.Node;
   let npcOne: Npc;
   let npcTwo: Npc;
   let npcThree: Npc;
   let npcNode: f.Node;
-  let bomb: Bomb;
+  export let bomb: Bomb;
   export let bombNode: f.Node;
   export let theBomb: f.Node;
   export let flame: Flames;
@@ -26,13 +26,14 @@ namespace Bomberman {
   export let dBlockArray: f.Node[];
   let mapBaseTrnsf: f.Matrix4x4;
   let scaleFactor: f.Vector3;
- 
+
   window.addEventListener("load", init);
 
   function init(_event: Event): void {
     let dialog: HTMLDialogElement = document.querySelector("dialog");
     let gameStartButton: any = document.querySelector('.start--game');
     gameStartButton.addEventListener("submit", function (_event: any): void {
+      document.querySelector('.ui').classList.remove('hidden');
       _event.preventDefault();
       userSelected = _event.target[0].options.selectedIndex;
       // @ts-ignore until HTMLDialog is implemented by all browsers and available in dom.d.ts
@@ -49,16 +50,22 @@ namespace Bomberman {
     await scaleMap();
     //initBomb();
 
+    let cmpListener = new f.ComponentAudioListener();
+
+    //root.addComponent(new f.ComponentAudio(new f.Audio("../sound/theme-song.mp3"), true, true));
+
+    f.AudioManager.default.listenWith(cmpListener);
     f.AudioManager.default.listenTo(root);
-    f.AudioManager.default.listenWith(root.getComponent(f.ComponentAudioListener));
+    f.AudioManager.default.volume = 0.5;
+    f.Debug.log("Audio:", f.AudioManager.default);
 
     f.Loop.addEventListener(f.EVENT.LOOP_FRAME, update);
-    //viewport.physicsDebugMode = f.PHYSICS_DEBUGMODE.COLLIDERS;
+    viewport.physicsDebugMode = f.PHYSICS_DEBUGMODE.COLLIDERS;
     f.Loop.start(f.LOOP_MODE.TIME_REAL, 60);  // start the game loop to continously draw the viewport, update the audiosystem and drive the physics i/a
   }
 
   function buildViewPort(): void {
-    root = <f.Graph>f.Project.resources[document.head.querySelector("meta[autoView]").getAttribute("autoView")]; 
+    root = <f.Graph>f.Project.resources[document.head.querySelector("meta[autoView]").getAttribute("autoView")];
     let canvas: HTMLCanvasElement = document.querySelector("canvas");
     viewport = new f.Viewport();
     viewport.initialize("Viewport", root, camera, canvas);
@@ -94,7 +101,7 @@ namespace Bomberman {
 
   async function fetchData() {
     try {
-      const response = await fetch("../Bomberman/mapsize.json");
+      const response = await fetch("../mapsize.json");
       const responseObj = await response.json();
       return responseObj;
     } catch(error) {
@@ -165,7 +172,7 @@ namespace Bomberman {
     camera.mtxPivot.lookAt(f.Vector3.SUM(agentNode.mtxWorld.translation, f.Vector3.Z(0)), f.Vector3.Y(1));
     agent.addComponent(camera);
   }
-  
+
   function update(_event: Event): void {
     viewport.draw();
     f.AudioManager.default.update();
@@ -174,18 +181,19 @@ namespace Bomberman {
     if(f.Keyboard.isPressedOne([f.KEYBOARD_CODE.SPACE]) && canPlaceBomb) {
       createBomb();
     }
-    
+
   }
 
   function createBomb() {
     canPlaceBomb = false;
     let agentPos = agent.mtxWorld.translation;
+    agent.addComponent(new f.ComponentAudio(new f.Audio("../sound/hit.mp3"), false, true));
     bombNode = root.getChildrenByName("Bomb")[0];
     bomb = new Bomb(agentPos.x, agentPos.y, agentPos.z);
-    bombNode.addChild(bomb); 
+    bombNode.addChild(bomb);
     theBomb = bombNode.getChildrenByName("NewBomb")[0];
     setTimeout(()=>{
       canPlaceBomb = true;
     }, 3000);
   }
-}      
+}

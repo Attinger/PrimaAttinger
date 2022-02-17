@@ -17,8 +17,8 @@ namespace Bomberman {
   
       constructor() {
         super();
-        this.agentControlForward = new f.Control("Forward", 1, f.CONTROL_TYPE.PROPORTIONAL);
-        this.agentControlTurn = new f.Control("Turn", 1, f.CONTROL_TYPE.PROPORTIONAL);
+        this.agentControlForward = new f.Control("Forward", 2, f.CONTROL_TYPE.PROPORTIONAL);
+        this.agentControlTurn = new f.Control("Turn", 2, f.CONTROL_TYPE.PROPORTIONAL);
         this.agentControlForward.setDelay(10);
         this.agentControlTurn.setDelay(10);
   
@@ -47,8 +47,7 @@ namespace Bomberman {
         this.agentControlForward.setInput(forwardValue);
         this.agentControlTurn.setInput(turnValue);
 
-        this.agentRigibody.applyForce(f.Vector3.SCALE(this.agentTransform.getZ(), this.agentControlTurn.getOutput()));
-        this.agentRigibody.applyForce(f.Vector3.SCALE(this.agentTransform.getX(), this.agentControlForward.getOutput()));
+        this.agentRigibody.setVelocity(new f.Vector3(this.agentControlForward.getOutput(),0, this.agentControlTurn.getOutput()));
         this.agentRigibody.setRotation(new f.Vector3(0,90,0));
       }
   

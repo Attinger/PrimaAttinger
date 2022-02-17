@@ -5,10 +5,8 @@ namespace Bomberman {
     export class GameState extends f.Mutable {
       private static controller: fui.Controller;
       private static instance: GameState;
-      public mapSizeX: number;
-      public mapSizeY: number;
-      public mapSizeName: string;
-  
+      public agentHealth: number;
+
       private constructor() {
         super();
         let domHud: HTMLDivElement = document.querySelector("#ui");
@@ -19,6 +17,15 @@ namespace Bomberman {
   
       public static get(): GameState {
         return GameState.instance || new GameState();
+      }
+
+      public gameOver() {
+        this.pauseLoop();
+        document.querySelector('.endscreen--loose').classList.remove('hidden');
+      }
+
+      public pauseLoop(): void  {
+        f.Loop.stop();
       }
   
       protected reduceMutator(_mutator: f.Mutator): void {/* */ }

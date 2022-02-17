@@ -17,9 +17,20 @@ var Bomberman;
             const body = new f.ComponentRigidbody(0.1, f.BODY_TYPE.DYNAMIC, f.COLLIDER_TYPE.CUBE, f.COLLISION_GROUP.DEFAULT, cmpTransform.mtxLocal);
             body.initialization = f.BODY_INIT.TO_MESH;
             this.addComponent(body);
+            Bomberman.root.addEventListener("bombExploded", this.explosion);
             this.getComponent(f.ComponentTransform).mtxLocal.mutate({ translation: agentPosition, });
             this.addComponent(new Bomberman.AgentComponentScript);
+            Bomberman.GameState.get().agentHealth = 2;
         }
+        explosion = (_event) => {
+            const flamePos = new f.Vector3(_event.data.x, _event.data.y, _event.data.z);
+            if (flamePos.equals(this.mtxWorld.translation, 0.5)) {
+                Bomberman.GameState.get().agentHealth -= 1;
+                if (Bomberman.GameState.get().agentHealth == 0) {
+                    Bomberman.GameState.get().gameOver();
+                }
+            }
+        };
     }
     Bomberman.Agent = Agent;
 })(Bomberman || (Bomberman = {}));
@@ -41,8 +52,8 @@ var Bomberman;
         bombTimeOut = 1500;
         constructor() {
             super();
-            this.agentControlForward = new f.Control("Forward", 1, 0 /* PROPORTIONAL */);
-            this.agentControlTurn = new f.Control("Turn", 1, 0 /* PROPORTIONAL */);
+            this.agentControlForward = new f.Control("Forward", 2, 0 /* PROPORTIONAL */);
+            this.agentControlTurn = new f.Control("Turn", 2, 0 /* PROPORTIONAL */);
             this.agentControlForward.setDelay(10);
             this.agentControlTurn.setDelay(10);
             // Don't start when running in editor
@@ -62,8 +73,7 @@ var Bomberman;
             let forwardValue = f.Keyboard.mapToTrit([f.KEYBOARD_CODE.W, f.KEYBOARD_CODE.ARROW_UP], [f.KEYBOARD_CODE.S, f.KEYBOARD_CODE.ARROW_DOWN]);
             this.agentControlForward.setInput(forwardValue);
             this.agentControlTurn.setInput(turnValue);
-            this.agentRigibody.applyForce(f.Vector3.SCALE(this.agentTransform.getZ(), this.agentControlTurn.getOutput()));
-            this.agentRigibody.applyForce(f.Vector3.SCALE(this.agentTransform.getX(), this.agentControlForward.getOutput()));
+            this.agentRigibody.setVelocity(new f.Vector3(this.agentControlForward.getOutput(), 0, this.agentControlTurn.getOutput()));
             this.agentRigibody.setRotation(new f.Vector3(0, 90, 0));
         };
         // Activate the functions of this component as response to events
@@ -94,12 +104,12 @@ var Bomberman;
             this.addComponent(new f.ComponentMesh(new f.MeshCube("MeshBlock")));
             if (!destroyable) {
                 this.addComponent(new ƒ.ComponentMaterial(new ƒ.Material("mtrAgent", ƒ.ShaderUniColor, new ƒ.CoatColored(new ƒ.Color(0.1, 0, 3, 2)))));
-                const body = new f.ComponentRigidbody(1, f.BODY_TYPE.STATIC, f.COLLIDER_TYPE.CUBE, f.COLLISION_GROUP.DEFAULT, cmpTransform.mtxLocal);
+                const body = new f.ComponentRigidbody(1, f.BODY_TYPE.KINEMATIC, f.COLLIDER_TYPE.CUBE, f.COLLISION_GROUP.DEFAULT, cmpTransform.mtxLocal);
                 body.initialization = f.BODY_INIT.TO_MESH;
                 this.addComponent(body);
             }
             else {
-                const body = new f.ComponentRigidbody(1, f.BODY_TYPE.STATIC, f.COLLIDER_TYPE.CUBE, f.COLLISION_GROUP.DEFAULT, cmpTransform.mtxLocal);
+                const body = new f.ComponentRigidbody(1, f.BODY_TYPE.KINEMATIC, f.COLLIDER_TYPE.CUBE, f.COLLISION_GROUP.DEFAULT, cmpTransform.mtxLocal);
                 body.initialization = f.BODY_INIT.TO_MESH;
                 this.addComponent(body);
                 this.addComponent(new ƒ.ComponentMaterial(new ƒ.Material("mtrAgent", ƒ.ShaderUniColor, new ƒ.CoatColored(new ƒ.Color(1, 0, 1, 1)))));
@@ -143,12 +153,13 @@ var Bomberman;
             this.getComponent(f.ComponentMesh).mtxPivot.scaleZ(0.5);
             setTimeout(() => {
                 this.removeComponent(this.getComponent(f.ComponentMaterial));
+                Bomberman.agent.addComponent(new f.ComponentAudio(new f.Audio("../sound/explosion-sound.wav"), false, true));
                 for (let i = 1; i <= 1; i++) {
-                    this.addChild(new Bomberman.Flames(i, 0, 0, 1, this.mtxWorld.translation));
-                    this.addChild(new Bomberman.Flames(-i, 0, 0, 1, this.mtxWorld.translation));
-                    this.addChild(new Bomberman.Flames(0, 0, i, 1, this.mtxWorld.translation));
-                    this.addChild(new Bomberman.Flames(0, 0, -i, 1, this.mtxWorld.translation));
-                    this.addChild(new Bomberman.Flames(0, 0, 0, 1, this.mtxWorld.translation));
+                    this.addChild(new Bomberman.Flames(i, 0, 0, this.mtxWorld.translation));
+                    this.addChild(new Bomberman.Flames(-i, 0, 0, this.mtxWorld.translation));
+                    this.addChild(new Bomberman.Flames(0, 0, i, this.mtxWorld.translation));
+                    this.addChild(new Bomberman.Flames(0, 0, -i, this.mtxWorld.translation));
+                    this.addChild(new Bomberman.Flames(0, 0, 0, this.mtxWorld.translation));
                 }
             }, bombTimer);
         }
@@ -210,7 +221,7 @@ var Bomberman;
 (function (Bomberman) {
     var f = FudgeCore;
     class Flames extends f.Node {
-        constructor(x, y, z, scale, worldpos) {
+        constructor(x, y, z, worldpos) {
             super("Flame");
             //console.log(scale);
             let flamePosition = new f.Vector3(x, y, z);
@@ -242,9 +253,7 @@ var Bomberman;
     class GameState extends f.Mutable {
         static controller;
         static instance;
-        mapSizeX;
-        mapSizeY;
-        mapSizeName;
+        agentHealth;
         constructor() {
             super();
             let domHud = document.querySelector("#ui");
@@ -254,6 +263,13 @@ var Bomberman;
         }
         static get() {
             return GameState.instance || new GameState();
+        }
+        gameOver() {
+            this.pauseLoop();
+            document.querySelector('.endscreen--loose').classList.remove('hidden');
+        }
+        pauseLoop() {
+            f.Loop.stop();
         }
         reduceMutator(_mutator) { }
     }
@@ -266,13 +282,11 @@ var Bomberman;
     let viewport;
     let userSelected;
     let camera = new f.ComponentCamera();
-    let agent;
     let agentNode;
     let npcOne;
     let npcTwo;
     let npcThree;
     let npcNode;
-    let bomb;
     let canPlaceBomb = true;
     let mapParent;
     let mapBase;
@@ -287,6 +301,7 @@ var Bomberman;
         let dialog = document.querySelector("dialog");
         let gameStartButton = document.querySelector('.start--game');
         gameStartButton.addEventListener("submit", function (_event) {
+            document.querySelector('.ui').classList.remove('hidden');
             _event.preventDefault();
             userSelected = _event.target[0].options.selectedIndex;
             // @ts-ignore until HTMLDialog is implemented by all browsers and available in dom.d.ts
@@ -301,10 +316,14 @@ var Bomberman;
         buildViewPort();
         await scaleMap();
         //initBomb();
+        let cmpListener = new f.ComponentAudioListener();
+        //root.addComponent(new f.ComponentAudio(new f.Audio("../sound/theme-song.mp3"), true, true));
+        f.AudioManager.default.listenWith(cmpListener);
         f.AudioManager.default.listenTo(Bomberman.root);
-        f.AudioManager.default.listenWith(Bomberman.root.getComponent(f.ComponentAudioListener));
+        f.AudioManager.default.volume = 0.5;
+        f.Debug.log("Audio:", f.AudioManager.default);
         f.Loop.addEventListener("loopFrame" /* LOOP_FRAME */, update);
-        //viewport.physicsDebugMode = f.PHYSICS_DEBUGMODE.COLLIDERS;
+        viewport.physicsDebugMode = f.PHYSICS_DEBUGMODE.COLLIDERS;
         f.Loop.start(f.LOOP_MODE.TIME_REAL, 60); // start the game loop to continously draw the viewport, update the audiosystem and drive the physics i/a
     }
     function buildViewPort() {
@@ -338,7 +357,7 @@ var Bomberman;
     ;
     async function fetchData() {
         try {
-            const response = await fetch("../Bomberman/mapsize.json");
+            const response = await fetch("../mapsize.json");
             const responseObj = await response.json();
             return responseObj;
         }
@@ -386,13 +405,13 @@ var Bomberman;
     function createChars(mapSize) {
         let mapWidth = mapSize - 2;
         let mapHeight = mapSize - 2;
-        agent = new Bomberman.Agent();
+        Bomberman.agent = new Bomberman.Agent();
         npcOne = new Bomberman.Npc(1, 1, mapHeight);
         npcTwo = new Bomberman.Npc(mapWidth, 1, mapHeight);
         npcThree = new Bomberman.Npc(mapWidth, 1, 1);
         agentNode = Bomberman.root.getChildrenByName('Agent')[0];
         npcNode = Bomberman.root.getChildrenByName('NPCs')[0];
-        agentNode.addChild(agent);
+        agentNode.addChild(Bomberman.agent);
         npcNode.addChild(npcOne);
         npcNode.addChild(npcTwo);
         npcNode.addChild(npcThree);
@@ -403,7 +422,7 @@ var Bomberman;
         camera.mtxPivot.translateY(15);
         camera.mtxPivot.translateX(-1);
         camera.mtxPivot.lookAt(f.Vector3.SUM(agentNode.mtxWorld.translation, f.Vector3.Z(0)), f.Vector3.Y(1));
-        agent.addComponent(camera);
+        Bomberman.agent.addComponent(camera);
     }
     function update(_event) {
         viewport.draw();
@@ -415,10 +434,11 @@ var Bomberman;
     }
     function createBomb() {
         canPlaceBomb = false;
-        let agentPos = agent.mtxWorld.translation;
+        let agentPos = Bomberman.agent.mtxWorld.translation;
+        Bomberman.agent.addComponent(new f.ComponentAudio(new f.Audio("../sound/hit.mp3"), false, true));
         Bomberman.bombNode = Bomberman.root.getChildrenByName("Bomb")[0];
-        bomb = new Bomberman.Bomb(agentPos.x, agentPos.y, agentPos.z);
-        Bomberman.bombNode.addChild(bomb);
+        Bomberman.bomb = new Bomberman.Bomb(agentPos.x, agentPos.y, agentPos.z);
+        Bomberman.bombNode.addChild(Bomberman.bomb);
         Bomberman.theBomb = Bomberman.bombNode.getChildrenByName("NewBomb")[0];
         setTimeout(() => {
             canPlaceBomb = true;
@@ -429,23 +449,79 @@ var Bomberman;
 (function (Bomberman) {
     var f = FudgeCore;
     class Npc extends f.Node {
+        body;
+        //private direction: f.Vector3;
+        canPlaceBomb;
+        npcDirection;
+        npcRotation;
         constructor(x, y, z) {
             super("NewNpc");
+            this.canPlaceBomb = true;
             let npcPosition = new f.Vector3(x, y, z);
             const cmpTransform = new f.ComponentTransform;
+            this.npcDirection = new f.Vector3(1, 0, 0);
+            this.npcRotation = new f.Vector3(0, 0, 0);
             this.addComponent(new f.ComponentMesh(new f.MeshCube("MeshNpc")));
             this.addComponent(new f.ComponentMaterial(new f.Material("mtrNpc", f.ShaderUniColor, new f.CoatColored(new f.Color(1, 0.3, 0, 1)))));
             this.getComponent(f.ComponentMesh).mtxPivot.scaleX(0.5);
             this.getComponent(f.ComponentMesh).mtxPivot.scaleY(1);
             this.getComponent(f.ComponentMesh).mtxPivot.scaleZ(0.5);
-            this.getComponent(f.ComponentMesh).mtxPivot.rotateY(90);
             this.addComponent(cmpTransform);
             this.getComponent(f.ComponentTransform).mtxLocal.mutate({ translation: npcPosition, });
-            const body = new f.ComponentRigidbody(0.5, f.BODY_TYPE.DYNAMIC, f.COLLIDER_TYPE.PYRAMID, f.COLLISION_GROUP.DEFAULT, cmpTransform.mtxLocal);
-            body.initialization = f.BODY_INIT.TO_MESH;
-            this.addComponent(body);
+            this.body = new f.ComponentRigidbody(1, f.BODY_TYPE.DYNAMIC, f.COLLIDER_TYPE.CUBE, f.COLLISION_GROUP.DEFAULT, cmpTransform.mtxLocal);
+            this.body.initialization = f.BODY_INIT.TO_MESH;
+            this.body.addEventListener("ColliderEnteredCollision" /* COLLISION_ENTER */, this.handleCollisionEnter);
+            this.addComponent(this.body);
             this.addComponent(new Bomberman.StateMachine);
-            //this.addComponent(new stateMachineScript);
+            f.Loop.addEventListener("loopFrame" /* LOOP_FRAME */, this.update);
+        }
+        changeDirection() {
+            if (this.npcDirection.x > 0) {
+                this.npcDirection = new f.Vector3(0, 0, 2);
+            }
+            else if (this.npcDirection.z > 0) {
+                this.npcDirection = new f.Vector3(-2, 0, 0);
+            }
+            else if (this.npcDirection.x < 0) {
+                this.npcDirection = new f.Vector3(0, 0, -2);
+            }
+            else if (this.npcDirection.z < 0) {
+                this.npcDirection = new f.Vector3(2, 0, 0);
+            }
+            this.npcDirection = new f.Vector3(this.npcDirection.x, this.npcDirection.y, this.npcDirection.z);
+        }
+        move() {
+            this.body.setVelocity(this.npcDirection);
+        }
+        placeBomb() {
+            if (this.canPlaceBomb) {
+                const npcPos = this.getComponent(f.ComponentTransform).mtxLocal.translation;
+                const x = new Bomberman.Bomb(npcPos.x, npcPos.y, npcPos.z);
+                const y = Bomberman.root.getChildrenByName("Bomb")[0];
+                y.addChild(x);
+                this.canPlaceBomb = false;
+                this.timeOut();
+            }
+            //this.timeOut();
+        }
+        async timeOut() {
+            setTimeout(() => {
+                this.canPlaceBomb = true;
+            }, 1000);
+        }
+        update = (_event) => {
+            this.body.setRotation(this.npcRotation);
+        };
+        handleCollisionEnter(_event) {
+            console.log(_event.cmpRigidbody.node.name);
+            //this.collisions.forEach( (element: any) => {
+            //console.log(element);
+            // this.direction = ƒ.Vector3.DIFFERENCE(element.node.getComponent(f.Component).mtxWorld.translation, this.node.getComponent(f.ComponentTransform).mtxWorld.translation);
+            // if(element.node.name === 'Wall') {
+            // this.direction = -this.direction;
+            //}
+            // console.log(this.direction)
+            //});
         }
     }
     Bomberman.Npc = Npc;
@@ -457,17 +533,15 @@ var Bomberman;
     f.Project.registerScriptNamespace(Bomberman); // Register the namespace to FUDGE for serialization
     let JOB;
     (function (JOB) {
-        JOB[JOB["IDLE"] = 0] = "IDLE";
-        JOB[JOB["ESCAPE"] = 1] = "ESCAPE";
-        JOB[JOB["DIE"] = 2] = "DIE";
-        JOB[JOB["RESPAWN"] = 3] = "RESPAWN";
+        JOB[JOB["START"] = 0] = "START";
+        JOB[JOB["NEXT"] = 1] = "NEXT";
+        JOB[JOB["PLACEBOMB"] = 2] = "PLACEBOMB";
+        JOB[JOB["TURN"] = 3] = "TURN";
     })(JOB || (JOB = {}));
     class StateMachine extends ƒAid.ComponentStateMachine {
         static iSubclass = f.Component.registerSubclass(StateMachine);
         static instructions = StateMachine.get();
-        forceEscape = 25;
-        torqueIdle = 5;
-        //private cmpBody: ƒ.ComponentRigidbody;
+        bombTimer;
         constructor() {
             super();
             this.instructions = StateMachine.instructions; // setup instructions with the static set
@@ -481,54 +555,78 @@ var Bomberman;
         }
         static get() {
             let setup = new ƒAid.StateMachineInstructions();
-            setup.transitDefault = StateMachine.transitDefault;
-            setup.actDefault = StateMachine.actDefault;
-            setup.setAction(JOB.IDLE, this.actIdle);
-            setup.setAction(JOB.ESCAPE, this.actEscape);
-            setup.setAction(JOB.DIE, this.actDie);
-            setup.setAction(JOB.RESPAWN, this.actRespawn);
-            setup.setTransition(JOB.ESCAPE, JOB.DIE, this.transitDie);
+            //setup.setAction(JOB.START, <f.General>this.actStart);
+            setup.setAction(JOB.START, this.actStart);
+            setup.setAction(JOB.NEXT, this.actNextMove);
+            setup.setAction(JOB.PLACEBOMB, this.actPlacebomb);
+            setup.setAction(JOB.TURN, this.actTurn);
             return setup;
         }
-        static transitDefault(_machine) {
-            console.log("Transit to", _machine.stateNext);
+        static actStart(_machine) {
+            const node = _machine.node;
+            node.move();
+            _machine.transit(JOB.NEXT);
         }
-        static async actDefault(_machine) {
-            _machine.node.getComponent(f.ComponentRigidbody).applyForce(f.Vector3.X(1));
+        static actNextMove(_machine) {
+            _machine.node.body.collisions.forEach(element => {
+                switch (element.node.name) {
+                    case "DBlock":
+                        //console.log('DBBLOCK');
+                        _machine.transit(JOB.PLACEBOMB);
+                        break;
+                    case "Wall":
+                        _machine.transit(JOB.TURN);
+                        break;
+                    case "NewNpc":
+                        _machine.transit(JOB.PLACEBOMB);
+                        break;
+                    case "NewAgent":
+                        _machine.transit(JOB.PLACEBOMB);
+                        break;
+                    default:
+                        _machine.transit(JOB.START);
+                        break;
+                }
+            });
         }
-        static async actIdle(_machine) {
-            _machine.node.getComponent(f.ComponentRigidbody).applyForce(f.Vector3.X(1));
+        static actPlacebomb(_machine) {
+            const nodePos = _machine.node.body.getPosition();
+            _machine.node.body.setPosition(new f.Vector3(Math.round(nodePos.x), nodePos.y, Math.round(nodePos.z)));
+            //console.log(nodePos.y);
+            const node = _machine.node;
+            node.placeBomb();
+            _machine.transit(JOB.TURN);
         }
-        static async actEscape(_machine) {
-        }
-        static async actDie(_machine) {
-        }
-        static transitDie(_machine) {
-        }
-        static actRespawn(_machine) {
+        static actTurn(_machine) {
+            const nodePos = _machine.node.body.getPosition();
+            _machine.node.body.setPosition(new f.Vector3(Math.round(nodePos.x), nodePos.y, Math.round(nodePos.z)));
+            const node = _machine.node;
+            node.changeDirection();
+            _machine.transit(JOB.START);
         }
         // Activate the functions of this component as response to events
         hndEvent = (_event) => {
             switch (_event.type) {
                 case "componentAdd" /* COMPONENT_ADD */:
                     f.Loop.addEventListener("loopFrame" /* LOOP_FRAME */, this.update);
-                    this.transit(JOB.IDLE);
+                    this.node.body.addEventListener("ColliderEnteredCollision" /* COLLISION_ENTER */, this.handleCollisionEnter);
+                    this.bombTimer = true;
+                    this.transit(JOB.START);
                     break;
                 case "componentRemove" /* COMPONENT_REMOVE */:
                     this.removeEventListener("componentAdd" /* COMPONENT_ADD */, this.hndEvent);
                     this.removeEventListener("componentRemove" /* COMPONENT_REMOVE */, this.hndEvent);
                     f.Loop.removeEventListener("loopFrame" /* LOOP_FRAME */, this.update);
                     break;
-                case "nodeDeserialized" /* NODE_DESERIALIZED */:
-                    this.node.getComponent(f.ComponentRigidbody).addEventListener("ColliderEnteredCollision" /* COLLISION_ENTER */, (_event) => {
-                        console.log('test');
-                    });
-                    break;
             }
         };
         update = (_event) => {
+            //this.node.body.applyForce(this.rotation);
             this.act();
         };
+        handleCollisionEnter(_event) {
+            //console.log(_event.cmpRigidbody.node.name);
+        }
     }
     Bomberman.StateMachine = StateMachine;
 })(Bomberman || (Bomberman = {}));

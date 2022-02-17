@@ -34,12 +34,13 @@ namespace Bomberman {
             setTimeout(()=>{
                 
                 this.removeComponent(this.getComponent(f.ComponentMaterial));
+                agent.addComponent(new f.ComponentAudio(new f.Audio("../sound/explosion-sound.wav"), false, true));
                 for(let i = 1; i <= 1; i++) {
-                    this.addChild(new Flames(i, 0, 0, 1, this.mtxWorld.translation));
-                    this.addChild(new Flames(-i, 0, 0, 1, this.mtxWorld.translation));
-                    this.addChild(new Flames(0, 0, i, 1, this.mtxWorld.translation));
-                    this.addChild(new Flames(0, 0, -i, 1, this.mtxWorld.translation));
-                    this.addChild(new Flames(0, 0, 0, 1, this.mtxWorld.translation));
+                    this.addChild(new Flames(i, 0, 0, this.mtxWorld.translation));
+                    this.addChild(new Flames(-i, 0, 0, this.mtxWorld.translation));
+                    this.addChild(new Flames(0, 0, i, this.mtxWorld.translation));
+                    this.addChild(new Flames(0, 0, -i, this.mtxWorld.translation));
+                    this.addChild(new Flames(0, 0, 0, this.mtxWorld.translation));
                 }
                 
             }, bombTimer);

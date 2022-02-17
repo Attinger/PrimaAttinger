@@ -17,11 +17,11 @@ namespace Bomberman {
           this.addComponent(new ƒ.ComponentMaterial(
             new ƒ.Material("mtrAgent", ƒ.ShaderUniColor, new ƒ.CoatColored(new ƒ.Color(0.1, 0, 3, 2))))
           );
-          const body = new f.ComponentRigidbody(1,f.BODY_TYPE.STATIC, f.COLLIDER_TYPE.CUBE, f.COLLISION_GROUP.DEFAULT, cmpTransform.mtxLocal);
+          const body = new f.ComponentRigidbody(1,f.BODY_TYPE.KINEMATIC, f.COLLIDER_TYPE.CUBE, f.COLLISION_GROUP.DEFAULT, cmpTransform.mtxLocal);
           body.initialization = f.BODY_INIT.TO_MESH;
           this.addComponent(body);
         } else {
-          const body = new f.ComponentRigidbody(1,f.BODY_TYPE.STATIC, f.COLLIDER_TYPE.CUBE, f.COLLISION_GROUP.DEFAULT, cmpTransform.mtxLocal);
+          const body = new f.ComponentRigidbody(1,f.BODY_TYPE.KINEMATIC, f.COLLIDER_TYPE.CUBE, f.COLLISION_GROUP.DEFAULT, cmpTransform.mtxLocal);
           body.initialization = f.BODY_INIT.TO_MESH;
           this.addComponent(body);
           this.addComponent(new ƒ.ComponentMaterial(
@@ -37,7 +37,6 @@ namespace Bomberman {
       }
 
       public explosion = (_event: any)  => {
-
         const flamePos: f.Vector3 = new f.Vector3(_event.data.x, _event.data.y, _event.data.z);
         if(this.getComponent(f.ComponentRigidbody) != undefined) {
           if(flamePos.equals(this.mtxWorld.translation, 0.1)) {
